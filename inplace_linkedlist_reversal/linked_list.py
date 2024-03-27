@@ -36,3 +36,24 @@ class LinkedList:
                 result += ", "
         result += ""
         return result
+        
+    def print_list_with_forward_arrow(self):
+        temp = self
+        while temp:
+            print(temp.data, end=" ")  # print node value
+            
+            temp = temp.next
+            if temp:
+                print("→", end=" ")
+            else:
+                # if this is the last node, print null at the end
+                print("→ null", end=" ")
+    
+    def reverse_link_list(head, k):
+        previous, current, next_node = None, head, None
+        for _ in range(k):
+            next_node = current.next
+            current.next = previous
+            previous = current
+            current = next_node
+        return previous, current
