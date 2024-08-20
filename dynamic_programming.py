@@ -504,15 +504,42 @@ def finding_lcs(string1, string2, i, j, dp):
     # return value stored in table  
     return dp[i][j]   
 
-def main():
-    first_strings = ["qstw", "setter", "abcde", "partner", "freedom"]
-    second_strings = ["gofvn", "bat", "apple", "park", "redeem"]
-
-    for i in range(len(first_strings)):
-        print(i + 1, ".\t str1: ", first_strings[i], sep="")
-        print("\t str2: ", second_strings[i], sep="")
-        print("\n\t The length of the longest common subsequence is: ", longest_common_subsequence(first_strings[i], second_strings[i]), sep="")
-        print("-" * 100)
-
-if __name__ == '__main__':
-    main()
+def word_break(s, word_dict):
+    # create 2D table where each entry corresponds to prefix of input string and store array 
+    # of all possible sentences that can be formed using that substring 
+    dp = [[]] * (len(s) + 1)
+    
+    # base case 
+    dp[0] = [""]
+    
+    # iterate over all prefixes of input string
+    
+    # for each substring in input string, repeat process 
+    for i in range(len(word_dict)): 
+        prefix = s[:i]
+        temp = [] # temp array to store valid sentences formed from current prefix being checked 
+        
+        # for each prefix, iterate over its suffixes and check whether suffix valid word in dict
+        # iterate over current prefix and break down into all possible suffixes
+        for j in range(0, i):
+            suffix = prefix[j:]
+            
+            # check if current suffix in word_dict - if so, it's a valid word that can be used in solution 
+            if suffix in word_dict:
+                
+                # retrieve valid sentences from previously computed subproblem 
+                for substring in dp[j]:
+                    
+                    # merge suffix with already calculated results 
+                    temp.append((substring + " " + suffix).strip())
+        
+        dp[i] = temp
+    # returning all sentences formed from complete string s
+    return dp[len(s)]
+     
+    # if suffix valid word, combine w all possible sentences that can be formed 
+    # using prefix to left of it 
+    # store array of all possible sentences that can be formed using current prefix 
+    # in corresponding entry of table 
+    # after processing all prefixes of input string, return list of all possible sentences
+    # that can be formed using complete string        

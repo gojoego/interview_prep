@@ -40,36 +40,3 @@ def traverse_linked_list(head):
     while current:
       nxt = current.next
       current = nxt
-
-def main():
-    input_list = [
-        [1, 2, 3, 4, 5, 6, 7],
-        [6, 9, 3, 10, 7, 4, 6],
-        [6, 9, 3, 4],
-        [6, 2, 3, 6, 9],
-        [6, 2]
-    ]
-    left = [1, 3, 2, 1, 1]
-    right = [5, 6, 4, 3, 2]
-
-    for i in range(len(input_list)):
-
-        input_linked_list = LinkedList()
-        input_linked_list.create_linked_list(input_list[i])
-
-        print(i + 1, ".\tOriginal linked list: ", end="")
-        LinkedList.print_list_with_forward_arrow(input_linked_list.head)
-        print("\n\tleft:", left[i], ", right:", right[i])
-
-        if left[i] <= 0:
-            print("\n\tThe expected 'left' and 'right' to have \
-            value from 1 to length of the linked list only.")
-        else:
-            result = reverse_between(input_linked_list.head, left[i], right[i])
-            print("\n\tReversed linked list: ", end="")
-            LinkedList.print_list_with_forward_arrow(result)
-        print("\n", "-"*100, sep="")
-
-
-if __name__ == '__main__':
-    main()
