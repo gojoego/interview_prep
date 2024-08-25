@@ -515,7 +515,7 @@ def word_break(s, word_dict):
     # iterate over all prefixes of input string
     
     # for each substring in input string, repeat process 
-    for i in range(len(word_dict)): 
+    for i in range(1, len(s) + 1): 
         prefix = s[:i]
         temp = [] # temp array to store valid sentences formed from current prefix being checked 
         
@@ -543,3 +543,49 @@ def word_break(s, word_dict):
     # in corresponding entry of table 
     # after processing all prefixes of input string, return list of all possible sentences
     # that can be formed using complete string        
+    
+def num_of_decodings(decode_str):
+    string_length = len(decode_str)
+    
+    # create array of length n + 1 to store number of ways to decode string and initialize with 0s 
+    dp = [0] * (string_length + 1)
+    
+    # there is only one way to decode empty string 
+    dp[0] = 1
+    
+    # for string of length 0, we'll compute that there's no way to decode string and add result in array
+    # first element 1 if first character not 0, otherwise it is 0
+    if decode_str[0] != '0':
+        dp[1] = 1
+ 
+    # iterate over string and at each increment, check whether digit is valid 1 digit number
+    # if it is, add to dp[i - 1] to current index of array        
+    # iterate through input string starting with 2nd character 
+    for i in range(2, string_length + 1):
+        # if current character not 0, add number of ways to decode string without current
+        if decode_str[i] != '0':
+            dp[i] += dp[i - 1]
+            
+        # if substring of current and previous characters valid 2 digit number
+        # add number of ways to decode substring without current and previous 
+        if decode_str[i - 2] == '1' or (decode_str[i - 2] == '2' and decode_str[i - 1] <= '6'):
+            dp[i] += dp[i - 2]
+    
+    # once all iterations complete, return value stored at last index of array 
+    return dp[string_length]
+
+MOD = 1000000007
+
+def count_good_subsequences(s):
+    n = len(s) + 1
+    factorials = [1] * n
+    inverses = [1] * n
+    
+    # iterate through input string and find frequencies of all string characters 
+    
+    # find max frequency from all character frequencies 
+    # start loop from 1 to max frequency 
+    # in each iteration of loop, count possible combos of good subsequences
+    # and add up number of combos in a counter
+    # after traversing string, return final count 
+    pass
