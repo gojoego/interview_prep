@@ -582,10 +582,79 @@ def count_good_subsequences(s):
     inverses = [1] * n
     
     # iterate through input string and find frequencies of all string characters 
+    # calculating factorial and inverse of all numbers from 1 to n
+    # instead of calculating factorial and inverse over and over again 
+    # store factorial of i and use to calculate factorial number i + 1
+    # factorial of number i + 1 is factorial of i-1 * i 
+    for i in range(1, n):
+        factorials[i] = factorials[i - 1] * i % MOD
+        inverses[i] = quick_modular_inverse(factorials[i], MOD - 2, MOD)
+        
+    # initializing array of size 26 to hold frequencies of characters A - Z
+    frequency_count = [0] * 26
+    
+    # initializing variable to keep record of max frequency 
+    max_count = 1
+    
+    # calculating frequency of each character and keeping record of max freq
+    for char in s: 
+        max_count = max(max_count, frequency_count[ord(char) - ord('a')] + 1)
+        frequency_count[ord(char) - ord('a')] += 1 
+        
+    # initializing variable to store count of good subsequences 
+    final_count = 0
+    
+    # nested loop to calc combo from 1 to max freq
+    for i in range(1, max_count + 1):
+        count = 1 
+        
+        for j in range(26):
+            # counting only if count of character freq greater or equal to 1
+            if frequency_count[j] >= 1:
+                count = count * (combination(frequency_count[j], i, factorials, inverses) + 1) % MOD
+        
+        # adding count to final count after subtracting 1 and taking mod 
+        final_count = (final_count + count - 1) % MOD
+    
+    # return final count after casting to int 
+    return int(final_count)
     
     # find max frequency from all character frequencies 
     # start loop from 1 to max frequency 
     # in each iteration of loop, count possible combos of good subsequences
     # and add up number of combos in a counter
     # after traversing string, return final count 
+    pass
+
+# method to find modular inverse of number
+def quick_modular_inverse(base, exponent, modulus):
+    # initialize result to 1 (identity element for multiplication modulo modulus)
+    result = 1
+    
+    while exponent != 0:
+        # if exponent odd, multiply result by base and take modulo modulus 
+        if (exponent & 1) == 1:
+            result = result * base % modulus
+        
+        # right shift exponent by 1 (equivalent to dividing exponent by 2)
+        exponent >>= 1
+        
+        # square base and take modulo modulus to reduce base in terms of modulus 
+        base = base * base % modulus
+    
+    return result
+   
+# calculating combo (n choose k)
+def combination(n, k, factorials, inverses):  
+    return (factorials[n] * inverses[k] % MOD) * inverses[n - k] % MOD
+    
+def climb_stairs(nums):
+    # initialize lookup table and fill in indexes for base cases of 1 and 2 jumps
+    if nums == 0 or nums == 1:
+        return 1 
+    
+    dp = [0] * (nums)
+    # iterate over lookup table and add 2 previous values from lookup table to fill next index
+    # repeat process until lookup table filled 
+    # return nth index value from lookup table, which is number of ways to climb stairs 
     pass
