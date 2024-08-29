@@ -598,6 +598,7 @@ def count_good_subsequences(s):
     
     # calculating frequency of each character and keeping record of max freq
     for char in s: 
+        # find max frequency from all character #frequencies 
         max_count = max(max_count, frequency_count[ord(char) - ord('a')] + 1)
         frequency_count[ord(char) - ord('a')] += 1 
         
@@ -605,8 +606,8 @@ def count_good_subsequences(s):
     final_count = 0
     
     # nested loop to calc combo from 1 to max freq
-    for i in range(1, max_count + 1):
-        count = 1 
+    for i in range(1, max_count + 1): # start loop from 1 to max frequency
+        count = 1 # in each iteration of loop, count possible combos of good subseq and add up number of combos in counter
         
         for j in range(26):
             # counting only if count of character freq greater or equal to 1
@@ -619,15 +620,7 @@ def count_good_subsequences(s):
     # return final count after casting to int 
     return int(final_count)
     
-    # find max frequency from all character frequencies 
-    # start loop from 1 to max frequency 
-    # in each iteration of loop, count possible combos of good subsequences
-    # and add up number of combos in a counter
-    # after traversing string, return final count 
-    pass
-
-# method to find modular inverse of number
-def quick_modular_inverse(base, exponent, modulus):
+def quick_modular_inverse(base, exponent, modulus): # method to find modular inverse of number
     # initialize result to 1 (identity element for multiplication modulo modulus)
     result = 1
     
@@ -642,6 +635,7 @@ def quick_modular_inverse(base, exponent, modulus):
         # square base and take modulo modulus to reduce base in terms of modulus 
         base = base * base % modulus
     
+    # after traversing string, return final count 
     return result
    
 # calculating combo (n choose k)
@@ -649,12 +643,18 @@ def combination(n, k, factorials, inverses):
     return (factorials[n] * inverses[k] % MOD) * inverses[n - k] % MOD
     
 def climb_stairs(nums):
-    # initialize lookup table and fill in indexes for base cases of 1 and 2 jumps
+    # if there are 0 or 1 steps, only 1 way to climb stairs 
     if nums == 0 or nums == 1:
         return 1 
     
+    # initialize lookup table and fill in indexes for base cases of 1 and 2 jumps
     dp = [0] * (nums)
+    dp[0] = 1 # 1 way to say at ground (0th step)
+    dp[1] = 1 # 1 way to climb 1 step
+    
     # iterate over lookup table and add 2 previous values from lookup table to fill next index
-    # repeat process until lookup table filled 
-    # return nth index value from lookup table, which is number of ways to climb stairs 
-    pass
+    for i in range(2, nums + 1):
+        dp[i] = dp[i - 1] + dp[i - 2] # repeat process until lookup table filled 
+    
+    # return index value at nums from lookup table, which is number of ways to climb stairs 
+    return dp[nums]
