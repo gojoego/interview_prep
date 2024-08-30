@@ -1,3 +1,5 @@
+# dynamic programming interview practice problems 
+
 # naive solution: space O(n), time O(2^n)
 def naive_knapsack(capacity, weights, values):
     n = len(weights)
