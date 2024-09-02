@@ -52,14 +52,82 @@ def smallest_missing_positive_integer(nums):
     # if all elements in order, return length of array + 1 as smallest missing positive integer 
     return len_nums + 1
 
-def main():
-  input_array = [[1, 2, 3, 4], [-1, 3, 5, 7, 1], [1, 5, 4, 3, 2], [-1 , 0, 2, 1, 4], [1,4,3]]
-  x = 1
-  for i in range(len(input_array)):
-    print(x, ".\tThe first missing positive integer in the list ", input_array[i], " is: ", sep = "")
-    print("\t" + str(smallest_missing_positive_integer(input_array[i])))
-    print("-" * 100)
-    x = x + 1
+# first solution that passed all test cases 
+def finding_corrupt_pair(nums):
+    len_nums = len(nums)
+    i = 0
+    
+    # apply cyclic sort to array 
+    while i < len_nums:
+        correct_spot = nums[i] - 1 # determining correct position of current element 
+        if correct_spot < len_nums and nums[i] != nums[correct_spot]:
+            nums[i], nums[correct_spot] = nums[correct_spot], nums[i] # swap current element to correct position 
+        else:
+            i += 1
+    
+    dup_num = 0
+    miss_num = 0
+    # after sorting, traverse array and find number that isn't at correct position - this is the duplicate number 
+    for i in range(len_nums):
+        if i + 1 != nums[i]:
+            dup_num = nums[i]
+            miss_num = i + 1 # add 1 to index of duplicate number - this is the missing number
+    
+    # return pair containing missing and duplicated number 
+    return [miss_num, dup_num]
 
-if __name__ == '__main__':
-  main()
+# second solution that also passes all test cases 
+def find_corrupt_pair(nums):
+    # declare and initialize variables for missing and duplicated numbers
+    missing = None
+    duplicated = None
+    
+    i = 0 # apply cyclic sort on array 
+    while i < len(nums): # traversing whole array 
+        correct_spot = nums[i] - 1 # determine what position specific element should be at 
+        if nums[i] != nums[correct_spot]: # check if number is at wrong position 
+            nums[i], nums[correct_spot] = nums[correct_spot], nums[i] # swapping number to its correct position 
+        else:
+            i += 1 
+            
+    for j in range(len(nums)): # finding corrupt pair (missing, duplicated)
+        if nums[j] != j + 1:
+            duplicated = nums[j]
+            missing = j + 1
+    
+    return [missing, duplicated]
+    
+
+def first_k_missing_numbers(arr, k):
+    len_arr = len(arr)
+    i = 0
+    
+    # traverse arr and place each element at its correct position while ignoring 
+    # negative elements and elements greater than length of arr
+    while i < len_arr:
+        correct_spot = arr[i] - 1
+        if 0 <= correct_spot < len_arr and arr[i] != arr[correct_spot]:
+            arr[i], arr[correct_spot] = arr[correct_spot], arr[i]
+        else:
+            i += 1
+    
+    # create set to store elements of arr that are not at their correct position and array to store missing elements 
+    misplaced_set = set()
+    missing_elements = []
+    
+    # iterate through arr again to find elements that are not at correct position
+    for i in range(len_arr):
+        if arr[i] != i + 1:
+            # insert those elements in set and add respective positions in missing elements array 
+            misplaced_set.add(arr[i])
+            if len(missing_elements) < k:
+                missing_elements.append(i + 1)
+                
+    # find additional missing numbers if we haven't found k missing numbers yet 
+    extra_num = len_arr + 1
+    while len(missing_elements) < k:
+        if extra_num not in misplaced_set:
+            missing_elements.append(extra_num)
+        extra_num += 1
+    
+    return missing_elements 
