@@ -111,7 +111,25 @@ def alien_order(words):
         return ""
     
     return "".join(result)
-     
+
+def naive_verify_alien_dictionary(words, order):
+    for i in range(len(words) - 1):
+        word1 = words[i]
+        word2 = words[i + 1]
+        
+        for j in range(min(len(word1), len(word2))):
+            position1 = order.index(word1[j])
+            position2 = order.index(word2[j])
+            
+            if position1 < position2:
+                break
+            elif position1 > position2:
+                return False
+        
+        if len(word1) > len(word2):
+            return False
+    return True
+
 def verify_alien_dictionary(words, order):
     # if only one word to check, trivial case with not enough input (2 word min) to run algo, return TRUE
     if len(words) == 1:
@@ -133,11 +151,93 @@ def verify_alien_dictionary(words, order):
             # check if letters in same position in 2 words different 
             if words[i][j] != words[i + 1][j]:
                 if order_map[words[i][j]] > order_map[words[i + 1][j]]:
-                    return False 
-                break
-    
-    # else, if characters in both words different and words in correct order
-    # exit and move to next 2 adjacent words 
-    # else, return FALSE if characters different in both words and words not in correct order 
+                    return False # return FALSE if characters different in both words and words not in correct order 
+                # if characters in both words different and words in correct order, exit and move to next 2 adjacent words 
+                break 
+            
     # at end of loop, all adjacent words have been examined, which ensure that all words sorted, return TRUE 
     return True
+
+def naive_find_order(n, prerequisites):
+    sorted_order = []
+    
+    # step 1: create list of course with no unmet prereqs 
+    courses = set(range(n)) # all courses initially considered as possible 
+    
+    while courses:
+        initial_length = len(sorted_order) # track size to track progress
+        
+        # find course that has no unmet prereqs
+        for course in list(courses):
+            can_take = True
+            # check if course has any unmet prereqs
+            for prereq in prerequisites:
+                if prereq[0] == course and prereq[1] not in sorted_order:
+                    can_take = False
+                    break
+            
+            # if course has no unmet prereqs, add it to sorted order 
+            if can_take:
+                sorted_order.append(course)
+                courses.remove(courses)
+                break
+        
+        # no progress made indicates cycle
+        if len(sorted_order) == initial_length:
+            return []
+    
+    # if we successfully ordered all course, return result 
+    if len(sorted_order) == n:
+        return sorted_order
+    else:
+        return []
+        
+    
+def find_order(n, prerequisites):
+    sorted_order = [] 
+    if n <= 0: # if n smaller or equal to zero, return empty array 
+        return sorted_order
+    
+    # create graph with node for each course and edges representing dependencies
+    graph = {i: [] for i in range(n)} # step 1: initialize graph 
+    
+    # store in-degrees of each node in separate data structure 
+    in_degree = {i: 0 for i in range(n)}
+    
+    # step 2: build graph 
+    for prerequisite in prerequisites:
+        parent, child = prerequisite[1], prerequisite[0]
+        graph[parent].append(child) # add child to parent's list 
+        in_degree[child] += 1 # increment child's in-degree 
+    
+    # step 3: bild all sources or nodes with 0 in-degrees
+    sources = deque()
+    
+    # traverse in in-degree using key 
+    for key in in_degree:
+        # if in-degree at key is 0, append key in sources deque 
+        if in_degree[key] == 0:
+            sources.append(key)
+    
+    # step 4: for each source, add to sorted order and subtract one from all children in-degrees
+    # if child in-degree 0, add to sources queue 
+    while sources:
+        # pop element from start of sources and store element in vertex 
+        vertex = sources.popleft()
+        
+        # append vertex at end of sorted order 
+        sorted_order.append(vertex)
+        
+        # traverse in graph at vertex using child get node's children to decrement in-degrees 
+        for child in graph[vertex]:
+            in_degree[child] -= 1 # decrement in-degree of node picked in previous step 
+            # if in-degree at child is 0, append child to sources deque 
+            if in_degree[child] == 0: # pick node with in-degree 0 and add to output list 
+                sources.append(child)
+                # repeat for all nodes with in-degree equal to zero 
+                
+    # topological sort not possible as graph has cycle
+    if len(sorted_order) != n:
+        return []
+
+    return sorted_order
