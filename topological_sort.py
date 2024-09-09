@@ -241,3 +241,39 @@ def find_order(n, prerequisites):
         return []
 
     return sorted_order
+
+def can_finish(num_courses, prerequisites):
+    counter = 0
+    if num_courses <= 0:
+        return True
+    
+    # step 1: initialize graph containing key as parent and value as its child's vertices 
+    in_degree = {i: 0 for i in range(num_courses)}
+    graph = {i: [] for i in range(num_courses)}
+    
+    # step 2: build graph and populate in-degree hash map 
+    for edge in prerequisites:
+        parent, child = edge[1], edge[0]
+        graph[parent].append(child) # put child into parent list
+        in_degree[child] += 1 # increment child in-degree
+        
+    # step 3: find all sources with 0 in-degrees 
+    sources = deque()
+    for key in in_degree:
+        if in_degree[key] == 0:
+            sources.append(key)
+    
+    # step 4: for each source, increment counter, -1 from all children in-degrees
+    # if child in-degree becomes zero, add to sources queue 
+    while sources:
+        course = sources.popleft()
+        counter += 1
+        
+        # get node's children to decrement their in-degrees
+        for child in graph[course]:
+            in_degree[child] -= 1
+            if in_degree[child] == 0:
+                sources.append(child)
+    
+    # topological sort not possible if counter not equal to num_courses
+    return counter == num_courses
