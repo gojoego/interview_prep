@@ -277,3 +277,56 @@ def can_finish(num_courses, prerequisites):
     
     # topological sort not possible if counter not equal to num_courses
     return counter == num_courses
+
+def find_recipes(recipes, ingredients, supplies):
+    # calculate count of ingredients of each recipe (count of dependencies of each recipe)
+    # step 1: create dictionary to store number of ingredients or dependencies each recipe needs
+    # this will track how many more ingredients needed for each recipe to be made 
+    in_degree = {recipe: 0 for recipe in recipes}
+    
+    # step 2: create graph to store which recipes depend on ingredients 
+    # will be used to reduce dependencies as ingredients become available 
+    graph = {ingredient: [] for ingredient in supplies}
+    
+    # step 3: build graph an in-degree count based on recipe ingredients 
+    for i, recipe in enumerate(recipes):
+        for ingredient in ingredients[i]:
+            # if ingredient isn't in supplies, must come from another recipe or unavailable
+            if ingredient not in graph:
+                graph[ingredient] = []
+            
+            # add recipe to list of recipes that depend on this ingredient 
+            graph[ingredient].append(recipe)
+            
+            # increase in-degree or dependency count for recipe 
+            in_degree[recipe] += 1
+    
+    # step 4: use queue to process recipes that can be made with available supplies 
+    # initially add all supplies to queue (starting point of topo sort)
+    queue = supplies[:]
+    
+    result = [] # list to store final list of recipes that can be made
+    
+    # start topo sort with list of supplies as starting point 
+    # step 5: perform topo sort (process ingredients/recipes in valid order)
+    while queue:
+        # get next available ingredient or recipe if processed and can be made 
+        ingredient = queue.pop(0)
+        
+        # if ingredient actually recipe, add to result list 
+        if ingredient in in_degree:
+            result.append(ingredient)
+    
+        # use topo sort to decrease dependency count of each recipe
+        # check recipes that depend on this ingredient 
+        for recipe in graph.get(ingredient, []):
+            # reduce in-degree or dependency count for recipe 
+            in_degree[recipe] -= 1
+            
+            # scan through list of recipes and add those w 0 dependency count 
+            # if recipe has no more dependencies, it can be made, so add it to queue 
+            # meaning all ingredients (as supplies or other recipes) available
+            if in_degree[recipe] == 0:
+                queue.append(recipe)
+    
+    return result
