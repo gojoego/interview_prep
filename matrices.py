@@ -169,17 +169,46 @@ def spiral_order(matrix):
         
     return result
 
-def main():
-    inputs = [[[1]], [[6], [2]], [[2, 14, 8], [12, 7, 14]],
-              [[3, 1, 1], [15, 12, 13], [4, 14, 12], [10, 5, 11]],
-              [[10, 1, 14, 11, 14], [13, 4, 8, 2, 13], [10, 19, 1, 6, 8], [20, 10, 8, 2, 12], [15, 6, 8, 8, 18]]]
+'''
 
-    for i in range(len(inputs)):
-        print(i + 1, ".\tMatrix:", sep="")
-        print_matrix(inputs[i])
+coding exercise: where will the ball fall? 
+-given n balls and 2D grid m x n box 
+-box open top and bottom
+-each cell has diagonal, either 1 or -1 
+-drop balls at each column top 
+-return array of where each ball ends up 
 
-        print("\n\tSpiral order:", spiral_order(inputs[i]))
-        print("-" * 100)
-          
-if __name__ == "__main__":
-    main()
+ball will get stuck if following conditions are true:
+-leftmost column with -1 
+-rightmost column with 1 
+-between columns, diagonal topleft-bottomright, next column topright-bottomleft, V
+-between columns, diagonal topright-bottomleft, next column topleft-bottomright, V
+
+'''
+
+def find_exit_column(grid):
+    # initialize list with -1 to store results 
+    results = [-1] * len(grid[0])
+    
+    # loop through each column in grid 
+    for col in range(len(grid[0])):
+        # for each ball, start it from top of grid (1st row and respective column)
+        current_col = col
+        # loop through each row in grid 
+        for row in range(len(grid)):
+            # get value of diagonal grid at current position 
+            next_col = current_col + grid[row][current_col]
+                
+            # determine if ball can move to next row by checking if it does not reach 
+            # grid walls of not stuck in v-shaped diagonals of consecutive cells 
+            if next_col < 0 or next_col > len(grid[0]) - 1 or grid[row][current_col] != grid[row][next_col]:
+                break
+    
+            # at corresponding position in results array, store -1 if ball stuck in any row 
+            # otherwise, store its exiting column number 
+            if row == len(grid) - 1:
+                results[col] = next_col
+            current_col = next_col
+    
+    # return results array when all balls exited grid or stuck between rows 
+    return results
