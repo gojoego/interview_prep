@@ -194,3 +194,106 @@ def exclusive_time(n, logs):
                 
     # store execution time in results array and return 
     return result
+
+# implement Nested Iterator class
+
+class NestedIntegers:
+    # constructor initializes single integer if value passed, else empty list initialized 
+    def __init__(self, integer=None):
+        if integer:
+            self.integer = integer
+        else:
+            self.n_list = []
+            self.integer = 0
+    
+    # if this NestedIntegers holds single integer rather than nested list, return True, else False 
+    def is_integer(self):
+        if self.integer:
+            return True
+        return False
+    
+    # returns single integer, if NestedInteger holds single integer
+    # returns null if this NestedIntegers holds nested list 
+    def get_integer(self):
+        return self.integer
+    
+    # sets this NestedIntegers to hold single integer
+    def set_integer(self, value):
+        self.n_list = None
+        self.integer = value
+        
+    # sets this NestedIntegers to hold nested list and adds nested integer to it 
+    def add(self, ni):
+        if self.integer:
+            self.n_list = []
+            self.n_list.append(NestedIntegers(self.integer))
+            self.integer = None
+        self.n_list.append(ni)
+        
+    # returns nested list, if this NestedIntegers holds nested list
+    # returns null if this NestedIntegers holds single integer
+    def get_list(self):
+        return self.n_list
+    
+class NestedIterator:
+    # constructor initializes stack using given nested list
+    def __init__(self, nested_list):
+        self.nested_list_stack = list(reversed([NestedIntegers(val) for val in nested_list]))
+
+    # has_next() will return True is there are still some integeres in stack
+    # (that has nested_list elements), otherwise will return False 
+    def has_next(self):
+        # iterate in stack while stack is not empty 
+        while len(self.nested_list_stack) > 0:
+            # save top value of stack
+            top = self.nested_list_stack[-1]
+            
+            # check if top value is integer, return True is so, continue if not 
+            if top.is_integer():
+                return True
+            
+            # if top no integer, it must be list of integers
+            # pop list from stack and save in top_list 
+            top_list = self.nested_list_stack.pop().get_list()
+            
+            # save length of top_list in i and iterate in list 
+            i = len(top_list) - 1
+            while i >= 0:
+                # append values of nested list into stack 
+                self.nested_list_stack.append(top_list[i])
+                i -= 1
+        return False
+    
+    # next will return integer from nested_list 
+    def next(self):
+        # check if there is still integer in stack 
+        if self.has_next():
+            # if true pop and return top of stack 
+            return self.nested_list_stack.pop().get_integer()
+        return None
+
+def create_nested_iterator_structure(input_list):
+    def parse_input(nested, input_list):
+        if isinstance(input_list, int):
+            nested.set_integer(input_list)
+        else:
+            for item in input_list:
+                child = NestedIntegers()
+                nested.add(child)
+                parse_input(child, item)
+
+    nested_structure = NestedIntegers()
+    parse_input(nested_structure, input_list)
+    return nested_structure
+
+def create_nested_iterator_from_structure(nested_structure):
+    def flatten(nested, result):
+        if nested.is_integer():
+            result.append(nested.get_integer())
+        else:
+            for child in nested.get_list():
+                flatten(child, result)
+
+    flattened_list = []
+    flatten(nested_structure, flattened_list)
+    return NestedIterator(flattened_list)
