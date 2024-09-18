@@ -1,3 +1,26 @@
+class Stack:
+    def __init__(self):
+        self.stack_list = []
+    
+    def is_empty(self):
+        return len(self.stack_list) == 0
+    
+    def top(self):
+        if self.is_empty():
+            return None
+        return self.stack_list[-1]
+    
+    def size(self):
+        return len(self.stack_list)
+    
+    def push(self, value):
+        self.stack_list.append(value)
+
+    def pop(self):
+        if self.is_empty():
+            return None
+        return self.stack_list.pop()
+    
 '''
 
 stack
@@ -297,3 +320,53 @@ def create_nested_iterator_from_structure(nested_structure):
     flattened_list = []
     flatten(nested_structure, flattened_list)
     return NestedIterator(flattened_list)
+
+# implement queue using stacks: void push(), int pop(), int peek(), boolean empty()
+
+class MyQueue(object):
+
+    # constructor to initialize 2 stacks
+    def __init__(self):
+        self.stack1 = Stack() # stack to store elements
+        self.stack2 = Stack() # temp stack for reversing elements 
+
+    def push(self, x):
+        # loop to transer existing elements from stack 1 to stack 2
+        while not self.stack1.is_empty():
+            self.stack2.push(self.stack1.pop())
+    
+        # push new element in stack 1
+        self.stack1.push(x)
+        
+        # loop to transfer elements back to stack 1 
+        while not self.stack2.is_empty():
+            self.stack1.push(self.stack2.pop())
+
+    def pop(self):
+        return self.stack1.pop()
+
+    def peek(self):
+        return self.stack1.top()
+            
+    def empty(self):
+        return self.stack1.is_empty()
+
+# function checking if opening parentheses have corresponding closing parentheses 
+def is_valid(s):
+    parentheses = []
+    # dictionary to map closing brackets to opening brackets 
+    bracket_map = {")": "(", "}": "{", "]": "["}
+    
+    # start traversing input string
+    for character in s:
+        # if current parenthesis opening, push onto stack 
+        if character in bracket_map.values():
+            parentheses.append(character)
+        # if current parenthesis closing and corresponds to opening on top, pop from stack
+        elif character in bracket_map:
+            if not parentheses or parentheses[-1] != bracket_map[character]:
+                return False
+            parentheses.pop()
+    
+    # after complete traversal, if stack empty, parentheses valid, otherwise not 
+    return len(parentheses) == 0
