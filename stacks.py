@@ -132,3 +132,65 @@ def remove_duplicates(s):
             characters.append(char)
     # after all iterations, form string from characters in stack and return 
     return ''.join(characters)
+
+# given string, remove min number of parentheses so that resulting string has valid parentheses
+# time O(n), space O(n)
+def min_remove_parentheses(s):
+    stack = []
+    string_list = list(s)
+    
+    # traverse string, while tracking parenthesis alongside their indexes in stack
+    for i, value in enumerate(s):
+        # if matched parenthesis found, remove from stack 
+        # if stack not empty and top element of stack is opening parenthesis 
+        # and current element closing parenthesis 
+        if len(stack) > 0 and stack[-1][0] == '(' and value == ')':
+            # pop opening parenthesis as it makes valid pair with current closing parenthesis 
+            stack.pop()    
+        # if current value is an opening or closing parenthesis 
+        elif value == '(' or value == ')':
+            # push onto stack
+            stack.append([value, i])
+            
+    # once string traversed, only left with unmatched parenthesis in stack
+    
+    # create new string without including characters at indexes still present in stack 
+    for p in stack: # remove invalid parentheses
+        string_list[p[1]] = ""
+        
+    result = ''.join(string_list) # converting list to string 
+    
+    return result
+        
+class Log:
+    def __init__(self, content):
+        content = content.replace(' ', '')
+        content = content.split(":")
+        self.id = int(content[0])
+        self.is_start = content[1] == "start"
+        self.time = int(content[2])
+        
+def exclusive_time(n, logs):
+    logs_stack = []
+    result = [0] * n
+    # retrieve function ID, start/end, and timestamp from log string 
+    for content in logs:
+        # extract logs details from content(string)
+        logs = Log(content)
+        # if string contains start, push log details to stack
+        if logs.is_start:
+            logs_stack.append(logs)
+        # else if string contains end, pop from stack and compute function's execution time  
+        else:
+            # pop logs details from stack 
+            top = logs_stack.pop()
+            
+            # add execution time of current function in actual result 
+            result[top.id] += (logs.time - top.time + 1)
+            
+            # if stack not empty after pop operation, subtract execution time of called function from calling function
+            if logs_stack:
+                result[logs_stack[-1].id] -= (logs.time - top.time + 1)
+                
+    # store execution time in results array and return 
+    return result
