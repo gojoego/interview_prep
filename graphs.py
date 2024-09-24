@@ -147,31 +147,61 @@ def network_delay_time(times, n, k):
         return delays
     
     return -1 
-     
+
+# create function that determines complexity of graph, time O(n^2), space O()
+def naive_number_paths(n, corridors):
+    adjacency = [[0] * n for _ in range(n)] # create adjacency matrix to store edges between rooms 
     
-    # Driver code
-def main():
-    time = [
-                [[2, 1, 1], [3, 2, 1], [3, 4, 2]],
-                [[2, 1, 1], [1, 3, 1], [3, 4, 2], [5, 4, 2]],
-                [[1, 2, 1], [2, 3, 1], [3, 4, 1]],
-                [[1, 2, 1], [2, 3, 1], [3, 5, 2]],
-                [[1, 2, 2]]
-            ]
+    # populate adjacency matrix with edges from corridors 
+    for room1, room2 in corridors:
+        adjacency[room1 - 1][room2 - 1] = 1
+        adjacency[room2 - 1][room1 - 1] = 1
+        
+    cycles = 0 # initiate cycle count
+    
+    # check for all triplets (room1, room2, room3)
+    for room1 in range(n):
+        for room2 in range(room1 + 1, n):
+            for room3 in range(room2 + 1, n):
+                # check if (room1, room2), (room2, room3), (room3, room1) connected
+                if adjacency[room1][room2] and adjacency[room2][room3] and adjacency[room3][room1]:
+                    cycles += 1
+                    
+    return cycles
 
-    n = [4, 5, 4, 5, 2]
-    k = [3, 1, 1, 1, 2]
+def number_of_paths(n, corridors): 
+    # create adjacency matrix to store rooms as keys and its neighbor rooms as corresponding values
+    neighbors = defaultdict(set)
+    # create counter to store number of cycles 
+    cycles = 0
+    
+    # start iterating over corridors and store neighbors of room1 and room2 in matrix
+    for room1, room2 in corridors:
+        neighbors[room1].add(room2)
+        neighbors[room2].add(room1)
+    
+        # take intersection of neighbors of room1 and room2 and add length of result to counter 
+        cycles += len(neighbors[room1].intersection(neighbors[room2]))
+    
+    # repeat process until iterated over all corridors 
+    
+    return cycles
+    
+# given reference of node in graph with data and list of neighbors, create deep copy of graph 
+# properties: undirected (edges of graph bidirectional), connected (path will always exist between any 2 nodes)
+# deep copy: new instance of every node created with same data as in original graph 
 
-    for i in range(len(time)):
-        print(i + 1, ".\t times = ", time[i], sep="")
-        print("\t number of nodes 'n' = ", n[i], sep="")
-        print("\t starting node 'k' = ", k[i], "\n", sep="")
-        print("\t Minimum amount of time required = ", network_delay_time(time[i], n[i], k[i]), sep="")
-        print("-" * 100)
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.neighbors = []
 
-
-if __name__ == "__main__":
-    main()
+def clone(root):
+    # create new Node with same data as root of original graph 
+    # add root node and its clone to hash map 
+    # iterate through neighbors of root node 
+    # if neighbor not cloned yet, recursively clone it
+    # if neighbor already cloned, add to new node's neighbor 
     
     
-
+    return root
