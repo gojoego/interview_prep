@@ -230,11 +230,10 @@ def cloner(root, nodes_completed):
     # return root of new graph
     return root
 
-# determine if graph is a valid tree (all nodes connected w no cycle)
-
+# determine if graph is a valid tree (all nodes connected w no cycle), time O(n), space O(n)
 def valid_tree(n, edges):
     # if number of edges not equal to number of nodes - 1, return false
-    if len(edges) != n - 1:
+    if len(edges) != n - 1: # more edges, indicates cycle, less -> not all nodes connected
         return False
     
     # otherwise, create adjacency list to represent graph 
@@ -246,7 +245,7 @@ def valid_tree(n, edges):
         adjacency[y].append(x)
     
     # initialize set to track visited nodes, 0th node
-    visited = {} 
+    visited = {0} 
     # stack to track nodes, 0th node
     stack = [0]
     
@@ -258,6 +257,68 @@ def valid_tree(n, edges):
         for neighbor in adjacency[node]:
             # if neighbor node not visited, mark neighbor node as visited and add to stack 
             if neighbor not in visited:
+                visited.add(neighbor)
+                stack.append(neighbor)
                 
     # if length of set equals number of nodes, return true, else false 
-    return False
+    return len(visited) == n
+
+# prompt: given array "routes", routes[i] -> ith bus repeats, routes have 1+ stations
+# source and destination -> return min number of buses from src to dest, return -1 if none 
+
+from collections import deque # https://docs.python.org/3/library/collections.html#collections.deque
+
+# time O(R x S), space O(R x S) where R = total number of routes, S = number of stations
+def minimum_buses(bus_routes, src, dest):
+    # create adjacency list that maps each station to buses that travel through station 
+    adj = {}
+    
+    for i, stations in enumerate(bus_routes):
+        for station in stations:
+            if station not in adj:
+                adj[station] = []
+            adj[station].append(i)
+    
+    # initialize queue with initial source and bus count of 0
+    queue = deque()
+    queue.append([src, 0])
+
+    # create set to contain visited routes of bus
+    visited_buses = set()
+    
+    # iterate queue either till empty or destintation station arrived 
+    while queue:
+        # pop stationand number of buses taken and store in variables 
+        station, buses_taken = queue.popleft()
+        # if we have reached destination station, return number of buses taken 
+        if station == dest:
+            return buses_taken # return bus count
+        
+        # if station in graph, iterate over stations in graph 
+        if station in adj: 
+            for bus in adj[station]:
+                # if not visited, enqueue all stations in that bus route along with incremented bus count
+                if bus not in visited_buses: 
+                    # visit connecting stations of dequeued station and enqueue connecting stations
+                    for s in bus_routes[bus]:
+                        # in every iteration, increase bus count if new bus passing through station
+                        queue.append([s, buses_taken + 1])
+                    visited_buses.add(bus) # mark bus as visited 
+    
+    # if route not found, return -1 
+    return -1
+
+def main():
+  routes = [[[2, 5, 7], [4, 6, 7]], [[1, 12], [4, 5, 9], [9, 19], [10, 12, 13]], [[1, 12], [10, 5, 9], [4, 19], [10, 12, 13]], [[1, 9, 7, 8], [3, 6, 7], [4, 9], [8, 2, 3, 7], [2, 4, 5]], [[1, 2, 3], [4, 5, 6],[7, 8, 9]]]
+  src = [2, 9, 1, 1, 4]
+  dest = [6, 12, 9, 5, 6]
+  
+  for i, bus in enumerate(routes):
+    print(i+1, ".\tBus Routes: ", bus, sep ="")
+    print("\tSource: ", src[i])
+    print("\tDestination: ", dest[i])
+    print("\n\tMinimum Buses Required: ", minimum_buses(bus, src[i], dest[i]))
+    print("-"*100)
+
+if __name__ == '__main__':
+    main()
