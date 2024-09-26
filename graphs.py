@@ -196,12 +196,68 @@ class Node:
         self.data = data
         self.neighbors = []
 
+# time O(n + m), space O(n)
 def clone(root):
+    # initialize empty dictionary to keep track of cloned nodes 
+    nodes_completed = {}
+    
+    # call recursive function to clone graph starting from root node
+    return cloner(root, nodes_completed)
+
+def cloner(root, nodes_completed):
+    # if root node None, return None 
+    if root == None:
+        return None
+    
     # create new Node with same data as root of original graph 
-    # add root node and its clone to hash map 
+    cloned_node = Node(root.data)
+    # add root node and its clone to hash map
+    nodes_completed[root] = cloned_node
+    
     # iterate through neighbors of root node 
-    # if neighbor not cloned yet, recursively clone it
-    # if neighbor already cloned, add to new node's neighbor 
-    
-    
+    for p in root.neighbors:
+        # retrieve value of key p in nodes completed hash map
+        # if exists, assign corresponding cloned node to x
+        # checks if neighbor node p has already been cloned  
+        x = nodes_completed.get(p)
+        # if neighbor not cloned yet, recursively clone it
+        if not x: 
+            cloned_node.neighbors += [cloner(p, nodes_completed)]
+        # if neighbor already cloned, add to new node's neighbor 
+        else:
+            cloned_node.neighbors += [x]
+             
+    # return root of new graph
     return root
+
+# determine if graph is a valid tree (all nodes connected w no cycle)
+
+def valid_tree(n, edges):
+    # if number of edges not equal to number of nodes - 1, return false
+    if len(edges) != n - 1:
+        return False
+    
+    # otherwise, create adjacency list to represent graph 
+    # initialize empty list of lists (each inner list corresponds to node and stores neighbors)
+    adjacency = [[] for _ in range(n)]
+    
+    for x, y in edges:
+        adjacency[x].append(y)
+        adjacency[y].append(x)
+    
+    # initialize set to track visited nodes, 0th node
+    visited = {} 
+    # stack to track nodes, 0th node
+    stack = [0]
+    
+    # perform DFS and pop node from stack 
+    while stack:
+        node = stack.pop()
+    
+        # iterate through neighbors from adjacency array/neighbors of popped node
+        for neighbor in adjacency[node]:
+            # if neighbor node not visited, mark neighbor node as visited and add to stack 
+            if neighbor not in visited:
+                
+    # if length of set equals number of nodes, return true, else false 
+    return False
