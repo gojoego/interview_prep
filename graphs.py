@@ -308,17 +308,46 @@ def minimum_buses(bus_routes, src, dest):
     # if route not found, return -1 
     return -1
 
-def main():
-  routes = [[[2, 5, 7], [4, 6, 7]], [[1, 12], [4, 5, 9], [9, 19], [10, 12, 13]], [[1, 12], [10, 5, 9], [4, 19], [10, 12, 13]], [[1, 9, 7, 8], [3, 6, 7], [4, 9], [8, 2, 3, 7], [2, 4, 5]], [[1, 2, 3], [4, 5, 6],[7, 8, 9]]]
-  src = [2, 9, 1, 1, 4]
-  dest = [6, 12, 9, 5, 6]
-  
-  for i, bus in enumerate(routes):
-    print(i+1, ".\tBus Routes: ", bus, sep ="")
-    print("\tSource: ", src[i])
-    print("\tDestination: ", dest[i])
-    print("\n\tMinimum Buses Required: ", minimum_buses(bus, src[i], dest[i]))
-    print("-"*100)
+# prompt: given list airline tickets where tickets[i] = [from, to] represent departure airport
+# and arrival airport of single flight, reconstruct itinerary in correct order and return it 
+# all journeys start from "JFK", prioritize smallest lexical order 
+# all tickets form at least one valid itinerary, all tickets used once 
 
-if __name__ == '__main__':
-    main()
+from collections import defaultdict
+
+def find_itinerary(tickets):
+    # create dictionary with airports as keys, each mapped to list of destinations 
+    flight_map = defaultdict(list)
+    # initialize list to track reconstructed itinerary 
+    result = []
+    
+    # populate flight map with each departure and arrival 
+    for departure, arrival in tickets:
+        flight_map[departure].append(arrival)
+    
+    # sort each list of destinations lexicographically in reverse order 
+    for departure in flight_map:
+        flight_map[departure].sort(reverse=True)
+    
+    # start DFS traversal from JFK airport 
+    dfs('JFK', flight_map, result)
+    
+    # return list in reverse order 
+    return result[::-1]
+
+def dfs(current, flight_map, result):
+    # retrieve list of destinations for current airport from dictionary
+    destinations = flight_map[current]
+    
+    # while there are destinations available, pop next destination from list
+    # traverse all destinations in order of their lexicographical sorting 
+    while destinations:
+        # pop last destination from list (smallest lexicographical order due to reverse sorting)
+        next_destination = destinations.pop()
+        
+        # recursively explore all available flights starting from popped destination
+        # recursively perform DFS on next destination 
+        dfs(next_destination, flight_map, result) 
+    
+    # append current airport to result list after all destinations visited 
+    result.append(current)
