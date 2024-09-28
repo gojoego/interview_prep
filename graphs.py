@@ -308,13 +308,20 @@ def minimum_buses(bus_routes, src, dest):
     # if route not found, return -1 
     return -1
 
-# prompt: given list airline tickets where tickets[i] = [from, to] represent departure airport
-# and arrival airport of single flight, reconstruct itinerary in correct order and return it 
-# all journeys start from "JFK", prioritize smallest lexical order 
-# all tickets form at least one valid itinerary, all tickets used once 
+'''
+prompt: 
+
+given list airline tickets where tickets[i] = [from, to] represent departure airport
+and arrival airport of single flight, reconstruct itinerary in correct order and return it,
+all journeys start from "JFK", prioritize smallest lexical order, 
+all tickets form at least one valid itinerary, all tickets used once 
+
+'''
 
 from collections import defaultdict
 
+# Hierholzer's algorithm - finding Eulerian path
+# time O(|E|log|E/V|), space O(|V| + |E|) where V = number of airports, E = number of flights  
 def find_itinerary(tickets):
     # create dictionary with airports as keys, each mapped to list of destinations 
     flight_map = defaultdict(list)
