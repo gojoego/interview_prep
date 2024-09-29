@@ -187,3 +187,32 @@ class BinaryTree:
         
         return root
     
+# given binary tree, compute length of tree's diameter (length of longest path between 2 nodes)
+# may pass through root, length of path between 2 nodes rep by number of edges between
+# time O(n), space O(n) where n = number of nodes 
+def diameter_of_binaryTree(root):
+    # variable for diameter
+    diameter = 0
+    if not root:
+        return 0
+    
+    # compute height of tree and max diameter
+    # start traversing tree from root node
+    _, diameter = diameter_helper(root, diameter)
+    
+    # after traversing whole tree, return diameter value since it's length of tree's diameter
+    return diameter
+
+def diameter_helper(node, diameter):
+    if node is None:
+        return 0, diameter
+    else:
+        # for each node, calculate height of left and right subtree
+        left_height, diameter = diameter_helper(node.left, diameter)
+        right_height, diamater = diameter_helper(node.right, diameter)
+
+        # for each node, update diameter using formula: max(diameter, left height + right height)
+        diamater = max(diamater, left_height + right_height)
+        
+        # use larger one
+        return max(left_height, right_height) + 1, diamater

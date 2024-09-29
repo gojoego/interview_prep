@@ -321,7 +321,7 @@ all tickets form at least one valid itinerary, all tickets used once
 from collections import defaultdict
 
 # Hierholzer's algorithm - finding Eulerian path
-# time O(|E|log|E/V|), space O(|V| + |E|) where V = number of airports, E = number of flights  
+# time O(|E|log|E/V|), space O(|V| + |E|) where V = number of airports, E = number of flights 
 def find_itinerary(tickets):
     # create dictionary with airports as keys, each mapped to list of destinations 
     flight_map = defaultdict(list)
