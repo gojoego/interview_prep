@@ -308,3 +308,51 @@ def mirror_binary_tree(root): # function to mirror binary tree
     root.left, root.right = root.right, root.left
         
     return root
+
+# given root of binary tree, return max sum of any non-empty path 
+# path: sequence of nodes in which each pair of adjacent nodes have connecting edge
+# node can only be included in path once at most, including root is not compulsory 
+# time O(n) where n = number of nodes, space O(h) where h = height of tree 
+
+global max_sum 
+
+def max_path_sum(root):
+    global max_sum
+    
+    # initialize max sum to negative infinity
+    max_sum = float('-inf')
+    
+    max_contribution(root)
+    
+    return max_sum
+    
+def max_contribution(root):
+    global max_sum
+    
+    if not root:
+        return 0
+    
+    # for leaf node, determine its contribution equal to its value
+    # sum of left and right subtree
+    max_left = max_contribution(root.left)
+    max_right = max_contribution(root.right)
+    
+    left_subtree = 0
+    right_subtree = 0
+    
+    # max sum on left and right sub-trees of root 
+    if max_left > 0:
+        left_subtree = max_left
+    if max_right > 0:
+        right_subtree = max_right
+
+    # value to start new path where root is highest root 
+    value_new_path = root.data + left_subtree + right_subtree
+    
+    # update max sum if above greater than previous max sum
+    # update max sum if it's better to start a new path 
+    max_sum = max(max_sum, value_new_path)
+    
+    # determine node's contribution as its value + greater of contributions of l/r children
+    # return max contribution if continue same path 
+    return root.data + max(left_subtree, right_subtree)
