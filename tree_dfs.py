@@ -187,6 +187,16 @@ class BinaryTree:
         
         return root
     
+def display_tree(node, level=0, prefix="Root: "):
+# """Displays the binary tree structure."""
+    if not node:
+        print("\t" * level + prefix + "None")
+        return
+    print("\t" * level + prefix + str(node.data))
+    if node.left or node.right:
+        display_tree(node.left, level + 1, "L--- ")
+        display_tree(node.right, level + 1, "R--- ")
+    
 # given binary tree, compute length of tree's diameter (length of longest path between 2 nodes)
 # may pass through root, length of path between 2 nodes rep by number of edges between
 # time O(n), space O(n) where n = number of nodes 
@@ -216,3 +226,85 @@ def diameter_helper(node, diameter):
         
         # use larger one
         return max(left_height, right_height) + 1, diamater
+
+# serialize given binary tree to file and deserialize it back to a tree, make sure original and deserialized identical
+# serialize: write tree to file, deserialize: read from file and reconstruct tree in memory 
+
+MARKER = "M"
+m = 1
+
+# space O(h) where h = height of tree, time O(n) where n = number of nodes in binary tree
+def serialize(root): # function to serialize tree into list of integers 
+    stream = []
+    recursive_serializer(root, stream)
+    return stream
+
+# perform depth-first traversal and serialize individual nodes to stream
+def recursive_serializer(node, stream):
+    global m
+    # adding marker to stream if node is None
+    # serialize marker to represent NULL pointer that helps deserialize tree
+    if node == None:
+        stream.append(MARKER + str(m))
+        m += 1
+        return 
+    
+    # adding node to stream
+    stream.append(node.data)
+    
+    # doing pre-order tree traversal for serialization 
+    recursive_serializer(node.left, stream)
+    recursive_serializer(node.right, stream)
+    
+# deserialize tree using preorder traversal    
+# space O(h) where h = height of tree, time O(n) where n = number of nodes in binary tree
+def deserialize(stream):
+    stream.reverse()
+    node = recursive_deserializer(stream)
+    return node
+
+def recursive_deserializer(stream):
+    # pop last element from list
+    value = stream.pop()
+    
+    # return None when marker encountered 
+    if type(value) is str and value[0] == MARKER:
+        return None
+    
+    # create new Binary Tree Node for every non-marker node using preorder traversal 
+    node = TreeNode(value)
+    
+    # doing pre-order tree traversal for deserialization 
+    node.left = recursive_deserializer(stream)
+    node.right = recursive_deserializer(stream)
+
+    # return node if it exists    
+    return node
+
+# given root node of binary tree, transform tree by swapping each node's left and right subtrees
+# time O(n) where n = number of nodes, space O(h) where h = height of tree
+
+# global variables to support step-by-step printing 
+change = 0
+master_root = None
+
+def mirror_binary_tree(root): # function to mirror binary tree
+    global change, master_root 
+    
+    # base case: end recursive call if current node null
+    if not root:
+        return None
+    
+    # perform post order traversal on left child of root node
+    if root.left:
+        mirror_binary_tree(root.left)
+        
+    # perform post order traversal on right child of root node
+    if root.right:
+        mirror_binary_tree(root.right)
+    
+    # swap left and right children of root node
+    # swap left and right nodes at current level
+    root.left, root.right = root.right, root.left
+        
+    return root
