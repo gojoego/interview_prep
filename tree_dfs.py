@@ -356,3 +356,76 @@ def max_contribution(root):
     # determine node's contribution as its value + greater of contributions of l/r children
     # return max contribution if continue same path 
     return root.data + max(left_subtree, right_subtree)
+
+# given array of integers nums, sorted in ascending order, construct height-balanced BST from this array
+# height-balanced BST: difference of heights of subtrees of any node not more than 1, can be multiple
+# time O(n), space O(logn)
+def sorted_array_to_bst(nums):
+    return array_bst_converter(nums, 0, len(nums) - 1)
+
+def array_bst_converter(nums, low, high):
+    # base case: if low is less than, there are no more elements to add to BST 
+    if (low > high):
+        return None
+    
+    # find middle element of list using low and high indexes, initialized to 0 and last index 
+    mid = low + (high - low) // 2 # can also use (low + high)//2 but maybe not work for large arrays
+    
+    # create root node of tree from calculated middle element
+    root = TreeNode(nums[mid])
+    
+    # using left and right subarrays from low to mid - 1 and mid + 1 to high, create left/right subtrees
+    # recursively add elements in nums[low:mid-1] to left of subtree of root 
+    root.left = array_bst_converter(nums, low, mid - 1)
+    # recursively add elements in nums[mid+1:high] to right subtree of root 
+    root.right = array_bst_converter(nums, mid + 1, high)
+    
+    # after traversing complete array, return root of newly created tree
+    return root
+    
+# create binary from 2 int arrays, one being a preorder traversal and the other inorder tranversal, time O(n), space O(n)
+def build_tree(p_order, i_order):
+    # explicitly using List object to pass p_index by reference because in python
+    # Pass-by-object-reference is used and simple variable is not an object 
+    p_index = [0]
+    
+    # using hash map to store inorder list to reduce time complexity of search to O(1)
+    mapping = {}
+    
+    # iterate through inorder list and map each value to index
+    for i in range(len(p_order)):
+        mapping[i_order[i]] = i 
+        
+    return tree_builder(p_order, i_order, 0, len(p_order) - 1, mapping, p_index)
+
+def tree_builder(p_order, i_order, left, right, mapping, p_index):
+    # if left is more than right, no more nodes left to construct
+    if left > right:
+        return None
+    
+    # select current element from preorder list using p_index
+    current = p_order[p_index[0]]
+    
+    # increment preorder index variable to prepare for next recursive call
+    p_index[0] += 1
+    
+    # create new tree node with selected element of preorder list as its data 
+    root = TreeNode(current)
+    
+    # if node has no children then return 
+    if left == right:
+        return root
+    
+    # find index of selected element in inorder list and store it in in_index 
+    in_index = mapping[current]
+    
+    # recursively build left subtree of root by calling function on elements 
+    # before in_index in inorder list (left to in_index + 1)
+    root.left = tree_builder(p_order, i_order, left, in_index - 1, mapping, p_index)
+    
+    # recursively build right subtree of root by calling function on elements 
+    # after in_index in inorder list (in_index + 1 to right)
+    root.right = tree_builder(p_order, i_order, in_index + 1, right, mapping, p_index)
+    
+    return root
+
