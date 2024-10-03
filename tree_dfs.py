@@ -186,6 +186,20 @@ class BinaryTree:
             i += 1
         
         return root
+        # function to find a node given the value stored in the node
+        
+    def find(self, value):
+        q = deque([self.root])
+        while q:
+            currentNode = q.popleft()
+            if currentNode:
+                if currentNode.data == value:
+                    return currentNode
+                q.append(currentNode.left)
+                q.append(currentNode.right)
+            if all(val == None for val in q):
+                break
+        return None    
     
 def display_tree(node, level=0, prefix="Root: "):
 # """Displays the binary tree structure."""
@@ -429,3 +443,245 @@ def tree_builder(p_order, i_order, left, right, mapping, p_index):
     
     return root
 
+# given root of binary tree that has n nodes, return right side view in form of list 
+# right side view - data of nodes visible when viewed from right side
+# time O(n) where n = number of nodes, space O(h) where h = tree's height 
+def right_side_view(root):
+    # return empty list if root NULL
+    if root is None:
+        return []
+    
+    # initialize list to store result
+    rside = []
+     
+    # apply DFS starting from root node and 0th level 
+    dfs(root, 0, rside)
+    
+    # after DFS completed, return list 
+    return rside
+
+def dfs(node, level, rside): # applying depth-first search 
+    # at each visited node, if length of list equal to current tree level 
+    # aka level is equal to rside length 
+    if level == len(rside):
+        # add data of node to list 
+        rside.append(node.data)
+        
+    # iterate over child nodes of current node (first right, then left)
+    for child in [node.right, node.left]:
+        if child:   # for each child, call DFS recursively
+            dfs(child, level + 1, rside)
+            
+# given root node of binary tree with n nodes, find lowest common ancestor of two of its node, p and q
+# lowest common ancestor: lowest node in tree that has both p and q as descendents 
+# time O(n) where n = number of nodes, space O(h) where h = height of binary tree 
+class Solution:
+    def __init__(self):
+        self.low_com_anc = None
+    
+    def lowest_common_ancestor(self, root, p, q):
+        self.lca_finder(root, p, q)
+        return self.low_com_anc   
+    
+    # helper function to find lowest common ancestor recursively
+    def lca_finder(self, current_node, p, q):
+        # if current node does not exist
+        if not current_node:
+            return False
+        
+        # initialize 3 tracking variables to track if either input nodes have been found
+        left, right, mid = False, False, False
+        
+        # check if current node one of input nodes, set one of track variable to TRUE
+        if p == current_node or q == current_node:
+            mid = True
+             
+        # store results of left and right subtrees in remaining 2 tracking variables  
+        # traverse left child of input binary tree using DFS 
+        left = self.lca_finder(current_node.left, p, q) 
+        
+        # if lca not found, traverse right subtree
+        if not self.low_com_anc:
+            right = self.lca_finder(current_node.right, p, q)
+        
+        # if any two of three tracking variables are TRUE at node, means that 
+        # this is the lowest common ancestor of binary tree 
+        if mid + left + right >= 2:
+            self.low_com_anc = current_node 
+        
+        # return true if any of the tracking variables true
+        return mid or left or right
+    
+    def opt_lca(self, root, p, q):
+        self.opt_lca_finder(root, p, q)
+        return self.low_com_anc
+    
+    def opt_lca_finder(self, current_node, p, q):
+        # base case: return False if node is None
+        if not current_node:
+            return False
+        
+        # check if current node one of the input nodes 
+        mid = current_node == p or current_node == q
+        
+        # recursively search left and right subtrees 
+        left = self.opt_lca_finder(current_node.left, p, q)
+        right = self.opt_lca_finder(current_node.right, p, q)
+        
+        # if two of the three flags (left, right, mid) TRUE, current node LCA
+        if mid + left + right >= 2:
+            self.low_com_anc = current_node
+        
+        # return TRUE if current node or either subtree contain p or q
+        return mid or left or right
+    
+'''
+given root of binary tree, check if its valid BST
+
+valid BST:
+-left subtree of node contains only nodes with keys less than node's key
+-right subtree of node contains only nodes with keys greater than node's key 
+-both l/r valid BSTs
+
+time O(n), space O(n) where n = number of nodes
+
+'''
+import math
+
+def validate_bst(root):
+    # explicitly using List object to pass prev by reference b/c Pass-by-object-reference used 
+    # and simple variable not object in Python 
+    # initialize prev variable with negative infinity
+    previous = [-math.inf]
+    return validator(root, previous) 
+    
+# start inorder traversal of binary tree
+def validator(root, previous):
+    # if all nodes of binary tree have been traversed and value of each node 
+    # greater than value of prev, return TRUE
+    if not root:
+        return True
+    
+    # if left subtree no valid BST, return False
+    if not validator(root.left, previous):
+        return False
+    
+    # if value of current node smaller than or equal to value of prev, return FALSE
+    if root.data <= previous[0]: # not valid BST
+        return False
+    
+    # otherwise, assign value of current node to prev 
+    previous[0] = root.data
+    
+    # continue traversal of binary tree
+    return validator(root.right, previous)
+
+'''
+prompt: given nested list of integers, nested_list, where each element either int or 
+list, return sum of each integer in nested_list multiplied by its weight
+
+weight: max_depth minus depth of integer plus one 
+
+depth: number of nested lists it is contained within 
+
+time O(m + n), space O(m), m = number of nested lists, n = number of integers contained within nested list
+'''
+
+def weighted_depth_sum(nested_list):
+    # calculate max depth
+    max_depth = find_max_depth(nested_list)
+    # call recursive function to calculate weighted sum
+    return sum_calculator(nested_list, 0, max_depth)
+
+# recursive function to calculate max depth 
+def find_max_depth(nested_list):
+    max_depth = 0
+    # use DFS to traverse each nested list
+    for object in nested_list:
+        # if nested object is a list with length greater than 0
+        if not object.is_integer() and len(object.get_list()) > 0:
+            # increment depth at each level to find max_depth 
+            max_depth = max(max_depth, 1 + find_max_depth(object.get_list()))
+    return max_depth
+
+# use DFS to calculate weighted sum of each integer, starting with depth of 1   
+def sum_calculator(nested_list, depth, max_depth):
+    # in each recursive call, initialize variable result with 0 to store weighted sum
+    result = 0
+    
+    # for each nested object, if integer -> multiply value by weight and add to result
+    for object in nested_list:
+        if object.is_integer():
+            result += object.get_integer() * (max_depth - depth + 1) # weight = max_depth - depth + 1
+        else:
+            # if nested object not integer, call recursive function again with nested object 
+            # increment depth (depth + 1)
+            result += sum_calculator(object.get_list(), depth + 1, max_depth)
+    
+    # once entire nested_list traversed, return result (weighted sum of all integers)
+    return result
+
+def createNestedList(input_list):
+    def parseInput(nested_integer, input_list):
+        if isinstance(input_list, int):
+            nested_integer.set_integer(input_list)
+        else:
+            for item in input_list:
+                child = NestedInteger()
+                nested_integer.add(child)
+                parseInput(child, item)
+
+    nested_integer = NestedInteger()
+    parseInput(nested_integer, input_list)
+    return [nested_integer]
+
+class NestedInteger:
+    # If no value is specified, initializes an empty list
+    # Otherwise, initializes with a single integer equal to the specified value
+    def __init__(self, integer=None):
+        if integer:
+            self.integer = integer
+        else:
+            self.n_list = []
+            self.integer = None 
+
+    # Returns True if this NestedInteger holds a single integer rather than a nested list
+    def is_integer(self):
+        if self.integer is None:
+            return False
+        return True
+
+    # Returns the single integer this NestedInteger holds, if it holds a single integer
+    # Otherwise, return None if this NestedInteger holds a nested list
+    def get_integer(self):
+        return self.integer
+
+    #  Sets this NestedInteger to hold a single integer equal to value
+    def set_integer(self, value):
+        self.n_list = None
+        self.integer = value
+
+    # Sets this NestedInteger to hold a nested list and adds the nested integer elem to it
+    def add(self, elem):
+        if self.integer:
+            self.n_list = [] 
+            self.n_list.append(NestedInteger(self.integer)) 
+            self.integer = None
+        self.n_list.append(elem) 
+
+    # Returns the nested list that this NestedInteger holds, if it holds a nested list
+    # Otherwise, return None if this NestedInteger holds a single integer
+    def get_list(self):
+        return self.n_list
+    
+def main():
+    lists = [[1, [2, 3], 4], [[1, 1], 2, [1, [2, [1]]]], [[1, 2], [3, 4], [5, 6]], [1, [2, [3, [4, [5]]]]], [[[[[[1]]]]]]]
+    
+    for i in range(len(lists)):
+        nested_list = createNestedList(lists[i])
+        print(i + 1, ".\tNested list: ", lists[i], sep = "")
+        print("\tWeighted sum:", weighted_depth_sum(nested_list))
+        print("-"*100)
+
+if __name__ == "__main__":
+    main()
