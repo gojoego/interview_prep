@@ -673,15 +673,174 @@ class NestedInteger:
     # Otherwise, return None if this NestedInteger holds a single integer
     def get_list(self):
         return self.n_list
-    
-def main():
-    lists = [[1, [2, 3], 4], [[1, 1], 2, [1, [2, [1]]]], [[1, 2], [3, 4], [5, 6]], [1, [2, [3, [4, [5]]]]], [[[[[[1]]]]]]]
-    
-    for i in range(len(lists)):
-        nested_list = createNestedList(lists[i])
-        print(i + 1, ".\tNested list: ", lists[i], sep = "")
-        print("\tWeighted sum:", weighted_depth_sum(nested_list))
-        print("-"*100)
 
-if __name__ == "__main__":
-    main()
+# given root node of BST and specific node p, return inorder successor of p node, NULL if none
+# inorder successor of p - node with smallest value greater than p.data, time O(n), space O(1)
+def inorder_successor(root, p):
+    # initialize variable successor to store inorder successor of given node 
+    successor = None
+    
+    # traverse tree and compare p with root at each node 
+    while root:
+        # if p greater than or equal to root node, shift to right subtree of current node 
+        if p.data >= root.data:
+            root = root.right
+        else: # store root node in successor & shift to left part of root node if p less than root 
+            successor = root
+            root = root.left
+    
+    # return successor once traverse completed, will contain inorder successor of given p node 
+    return successor
+
+class BinarySearchTree:
+    def __init__(self, values):
+        self.root = self.createBinaryTree(values)
+
+    def createBinaryTree(self, values):
+        if len(values) == 0:
+            return None
+
+        # Create the root node of the binary search tree
+        root = TreeNode(values[0])
+
+        # Start iterating over the list of values starting from the second value
+        for value in values[1:]:
+            node = TreeNode(value)
+            curr = root
+            while True:
+                # If the value is less than the current node's value, move to the left child
+                if node.data <= curr.data:
+                    if curr.left is None:
+                        # If the left child is empty, insert the new node here and break the loop
+                        curr.left = node
+                        break
+                    else:
+                        # If the left child is not empty, move to the left child and continue the search
+                        curr = curr.left
+                else:
+                    # If the value is greater or equal to the current node's value, move to the right child
+                    if curr.right is None:
+                        # If the right child is empty, insert the new node here and break the loop
+                        curr.right = node
+                        break
+                    else:
+                        # If the right child is not empty, move to the right child and continue the search
+                        curr = curr.right
+
+        # Return the root of the binary search tree
+        return root
+
+'''
+given root of binary tree with n nodes and array queries of size m, determine height of binary tree
+after each query, each query reps root of subtree that should be removed from tree, store updated
+heights against each query in array and return it 
+
+tree height: number of edges in longest path from root to any leaf node in tree 
+
+-all values in tree unique
+-guaranteed that queries[i] will not be equal to value of root 
+-queries independent, tree returns to initial state after each query 
+
+time O(n), space O(n)
+
+'''
+
+import collections
+
+def heights_after_queries(root, queries):
+    # traverse tree to compute and store depth and height of each node
+    node_depth, node_height = {}, {}
+    tree_dfs(root, 0, node_depth, node_height)
+    
+    depth_groups = collections.defaultdict(list) # group nodes by depth, keep 2 top heights
+    
+    # for each depth level, retain 2 top nodes with highest heights to efficiently
+    for value, depth in node_depth.items():
+        depth_groups[depth].append((node_height[value], value))
+        depth_groups[depth].sort(reverse=True)
+        if len(depth_groups[depth]) > 2:
+            depth_groups[depth].pop()
+     
+    result = []
+    # traverse tree again and identify depth of node to be removed for each query 
+    for q in queries: # remove node, store updated height in result array
+        depth = node_depth[q]
+        if len(depth_groups[depth]) == 1: # no cousin, path length equals depth -1
+            result.append(depth - 1)
+        elif depth_groups[depth][0][1] == q: # removed node largest height, look for node with 2nd largest height
+            result.append(depth_groups[depth][1][0] + depth)
+        else: # look for node with largest height
+            result.append(depth_groups[depth][0][0] + depth)   
+     
+    
+    # return result array that has heights of tree after each subtree removal query 
+    return result
+
+def tree_dfs(node, depth, node_depth, node_height): # depth = root to node distance, height = node to farthest leaf distance
+    if not node:
+        return -1
+    
+    node_depth[node.data] = depth
+    # determine new height of tree if highest height node removed
+    height = max(tree_dfs(node.left, depth + 1, node_depth, node_height),
+                 tree_dfs(node.right, depth + 1, node_depth, node_height)) + 1
+    node_height[node.data] = height
+    return height
+
+
+# prompt: given root of binary tree, determine max depth, time and space O(n)
+# max depth = count of nodes found on longest path from root to farthest leaf 
+from collections import deque
+
+def find_max_depth(root):
+    # initialize counter to track max depth seen so far and stack for depth of current branch 
+    max_depth = 0
+    stack = deque()
+
+    # if current node null, return counter
+    if root == None:
+        return 0  
+    
+    # start with root node at depth 1 
+    stack.append((root, 1))
+    
+    while stack:
+        node, current_depth = stack.pop()
+        if node:
+            # if depth of current branch exceeds max depth so far, update 
+            max_depth = max(max_depth, current_depth)
+            
+            # check depth of left and right subtrees and push onto stack
+            if node.left:
+                stack.append((node.left, current_depth + 1))
+            if node.right:
+                stack.append((node.right, current_depth + 1))
+    
+    # when all branches explored, return max depth 
+    return max_depth
+
+# prompt: given root of BST and integer value k, return kth smallest value in tree, time and space O(n)
+def kth_smallest_element(root, k):
+    # start inorder traversal of BST
+    stack = deque()
+    current = root
+    
+    # while traversing, decrement k by 1 
+    while True: # performing iterative in-order traversal
+        while current: # go as far left as possible
+            stack.append(current)
+            current = current.left
+        
+        # pop node from stack
+        current = stack.pop()
+        
+        # decrement k (counts number of nodes visited in in-order)
+        k -= 1
+        # check if k equals 0, return value of current node if so, containing kth smallest element
+        if k == 0:
+            return current.data
+        
+        # move to right subtree
+        current = current.right
+    
+    # otherwise, continue traversal of BST 
