@@ -187,14 +187,14 @@ with prefixes in dictionary if found, return modified sentence
 
 ''' 
 
-class TrieNode:
+class TrieNode3:
     def __init__(self):
         self.children = {}
         self.end_of_word = False
 
-class Trie:
+class Trie3:
     def __init__(self):
-        self.root = TrieNode()
+        self.root = TrieNode3()
     
     def insert(self, word):
         current = self.root
@@ -203,7 +203,7 @@ class Trie:
         for char in word:
             # if char doesn't belong to any child node of current trie node, create new trie node as child 
             if char not in current.children:
-                current.children[char] = TrieNode()
+                current.children[char] = TrieNode3()
             
             # move to child of current node, either present or already added 
             current = current.children[char]
@@ -231,7 +231,7 @@ class Trie:
 # time O(m + n) where m = number of characters of all prefixes in dictionary, n = number sentence words, space O(m)
 def replace_words(sentence, dictionary):
     # create trie to store each prefix present in dictionary 
-    trie = Trie()
+    trie = Trie3()
     
     # iterate over prefixes in dictionary and insert into trie
     for prefix in dictionary:
@@ -269,4 +269,150 @@ def naive_replace_words(sentence, dictionary):
             
     # join words back into sentence and return 
     return " ".join(words)
+
+'''
+
+prompt: create WordDictionary data structure with the following methods...
+    constructor() to initialize object 
+    add_word(word) to store provided word in data structure 
+    search_word(word) to return boolean if string in object matches query word, 
+        each dot . is a wild card 
+    get_words() to return all words in WordDictionary class 
+    
+'''
+
+class TrieNode():
+    # initialize TrieNode instance 
+    def __init__(self):
+        # empty list of child nodes 
+        self.children = []
+        # false indicates that this is not an end of a word 
+        self.complete = False
+        # create 26 child nodes for all the letters in the alphabet 
+        for _ in range(0, 26):
+            self.children.append(None)
+
+class DepthFirstSearch():
+    
+    def __init__(self):
+        self.root = TrieNode()
+        self.can_find = False
+    
+    def depth_first_search(self, root, word, i):
+        # if word found, return True
+        if self.can_find:
+            return True
         
+        # return if word NULL 
+        if not root:
+            return 
+        
+        # if there's only 1 character in word, check for query match 
+        if len(word) == i:
+            if root.complete:
+                self.can_find = True
+            return
+        index = ord(word[i]) - ord('a')
+        self.depth_first_search(root.children[index], word, i + 1)
+        
+class WordDictionary:
+    # initialize root with TrieNode and set can_find boolean to False 
+    def __init__(self):
+        self.root = TrieNode()
+        self.can_find = False
+
+    # function to add new word to dictionary, time and space O(1)   
+    def add_word(self, word):
+        n = len(word)
+        
+        # start from root node of trie and traverse word one character at a time 
+        current_node = self.root
+        for i, value in enumerate(word):
+            # find correct index of character in list of nodes
+            # calculate index of character between 1 and 26
+            index = ord(value) - ord('a')
+            
+            # check whether character already exists in trie
+            if current_node.children[index] == None:
+                # if character not present in trie, create new trie node
+                current_node.children[index] = TrieNode()
+            # otherwise use existing trie node for this character 
+            current_node = current_node.children[index]
+            if i == n - 1:
+                # if end of word reached and boolean flag already set
+                # means that it is already present in dictionary, so return True 
+                if current_node.complete:
+                    print("\tWord already present!")
+                    return
+                # once all characters of current word added to trie
+                # set boolean variable to True, marking as end of word 
+                current_node.complete = True         
+        print("\tWord added successfully!")
+        
+    # function to search for word in dictionary, time and space O(1)
+    def search_word(self, word):
+        # set can_find variable as False 
+        self.can_find = False
+        
+        # perform DFS to iterate over children nodes 
+        self.searcher(self.root, word, 0)
+        return self.can_find
+    
+    def searcher(self, node, word, i):
+        # if word already found and no need for further searching, return control to calling context 
+        if self.can_find:
+            return
+        
+        # return control to calling context if current node empty 
+        if not node:
+            return 
+        
+        # if last character of query string found in trie and complete flag is set, entire word found
+        if len(word) == i:
+            if node.complete:
+                self.can_find = True
+            return
+        
+        # if word contains wildcard character "." match with all children/letters 
+        # of current node and perform DFS starting at each child 
+        if word[i] == '.':
+            for j in range(ord('a'), ord('z') + 1):
+                self.searcher(node.children[j - ord('a')], word, i + 1)
+        else:
+            # otherwise, locate child corresponding to current character 
+            index = ord(word[i]) - ord('a')
+            # and continue DFS
+            self.searcher(node.children[index], word, i + 1)
+
+    # function to get all words in dictionary, time and space O(1) 
+    def get_words(self):
+        words_list = []
+        
+        # return empty list if root NULL 
+        if not self.root:
+            return []
+        
+        # perform DFS on trie 
+        return self.dfs(self.root, "", words_list)
+    
+    def dfs(self, node, word, words_list):
+        # if node NULL, return words list 
+        if not node:
+            return words_list
+        
+        # if word complete, add to words list 
+        if node.complete:
+            words_list.append(word)
+        
+        for j in range(ord('a'), ord('z') + 1):
+            prefix = word + chr(j)
+            words_list = self.dfs(node.children[j - ord('a')], prefix, words_list)
+        return words_list
+
+'''
+prompt: given list of strings, find them in 2D grid of letters such that string can be constructed
+from letters in sequentially adjacent cells, cells considered sequentially adjacent when they are 
+neighbors to each other either horizontally or vertically, return list containing string from input list 
+found in grid, order in strings do not matter
+
+'''
