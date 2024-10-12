@@ -281,7 +281,7 @@ prompt: create WordDictionary data structure with the following methods...
     
 '''
 
-class TrieNode():
+class TrieNode4():
     # initialize TrieNode instance 
     def __init__(self):
         # empty list of child nodes 
@@ -335,7 +335,7 @@ class WordDictionary:
             # check whether character already exists in trie
             if current_node.children[index] == None:
                 # if character not present in trie, create new trie node
-                current_node.children[index] = TrieNode()
+                current_node.children[index] = TrieNode4()
             # otherwise use existing trie node for this character 
             current_node = current_node.children[index]
             if i == n - 1:
@@ -415,4 +415,110 @@ from letters in sequentially adjacent cells, cells considered sequentially adjac
 neighbors to each other either horizontally or vertically, return list containing string from input list 
 found in grid, order in strings do not matter
 
+time O(n * 3^l) where n = rows * columns and l = length of longest string, space O(m) where m = total count of characters
 '''
+
+class TrieNode():
+    def __init__(self):
+        self.children = {}
+        self.is_string = False
+        
+class Trie():
+    def __init__(self):
+        self.root = TrieNode()
+    
+    # function to insert string into trie
+    def insert(self, string_to_insert):
+        node = self.root
+        for character in string_to_insert:
+            if character not in node.children:
+                node.children[character] = TrieNode()
+            node = node.children.get(character)
+        node.is_string = True
+    
+    def search(self, string_to_search):
+        node = self.root
+        for character in string_to_search:
+            if character not in node.children:
+                return False
+            node = node.children.get(character)
+        return node.is_string
+    
+    def starts_with(self, prefix):
+        node = self.root
+        for character in prefix:
+            if character not in node.children:
+                return False
+            node = node.children.get(character)
+        return True
+    
+    def remove_characters(self, string_to_delete):
+        node = self.root
+        child_list = []
+        
+        for character in string_to_delete:
+            child_list.append([node, character])
+            node = node.children[character]
+                
+        for pair in reversed(child_list):
+            parent = pair[0]
+            child_character = pair[1]
+            target = parent.children[child_character]
+            
+            if target.children:
+                return
+            del parent.children[child_character]
+     
+def find_strings(grid, words):
+    result = []
+    
+    # insert all input strings in trie
+    trie_for_words = Trie()
+    for word in words:
+        trie_for_words.insert(word)
+    
+    # calling DFS for all cells in grid
+    for j in range(len(grid)):
+        for i in range(len(grid[0])):
+            dfs(trie_for_words, trie_for_words.root, grid, j, i, result)
+    
+    # return result list 
+    return result
+
+# using trie, for each cell in grid, check if traversed sequence of letters 
+# matches any string in input strings 
+def dfs(words_trie, node, grid, row, column, result, word=''):
+    # checking if string found
+    if node.is_string:
+        # if sequence matches string in input strings, include it in result list 
+        result.append(word)
+        node.is_string = False
+        # remove characters in word that are not shared 
+        words_trie.remove_characters(word)
+        
+    if 0 <= row < len(grid) and 0 <= column < len(grid[0]):
+        character = grid[row][column]
+        
+        # getting child node of current node from Trie
+        child = node.children.get(character)
+        
+        # if child node exists in Trie
+        if child is not None:
+            word += character
+            
+            # marking it as visited before exploration 
+            grid[row][column] = None
+            
+            # search through grid cells, looking in all 4 possible adjacent directions to see
+            # if there is a string in the input strings that starts with letter in cell 
+            for row_offset, column_offset in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                # recursively calling DFS to search in all 4 directions
+                dfs(words_trie, child, grid, row + row_offset, column + column_offset, result, word)
+            
+            # restoring state after exploration
+            grid[row][column] = character
+            
+def print_grid(grid):
+    for i in grid:
+        output = '   '.join(i)
+        print("\t", output)
