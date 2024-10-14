@@ -295,7 +295,7 @@ class TrieNode4():
 class DepthFirstSearch():
     
     def __init__(self):
-        self.root = TrieNode()
+        self.root = TrieNode4()
         self.can_find = False
     
     def depth_first_search(self, root, word, i):
@@ -318,7 +318,7 @@ class DepthFirstSearch():
 class WordDictionary:
     # initialize root with TrieNode and set can_find boolean to False 
     def __init__(self):
-        self.root = TrieNode()
+        self.root = TrieNode4()
         self.can_find = False
 
     # function to add new word to dictionary, time and space O(1)   
@@ -418,21 +418,21 @@ found in grid, order in strings do not matter
 time O(n * 3^l) where n = rows * columns and l = length of longest string, space O(m) where m = total count of characters
 '''
 
-class TrieNode():
+class TrieNode5():
     def __init__(self):
         self.children = {}
         self.is_string = False
         
-class Trie():
+class Trie5():
     def __init__(self):
-        self.root = TrieNode()
+        self.root = TrieNode5()
     
     # function to insert string into trie
     def insert(self, string_to_insert):
         node = self.root
         for character in string_to_insert:
             if character not in node.children:
-                node.children[character] = TrieNode()
+                node.children[character] = TrieNode5()
             node = node.children.get(character)
         node.is_string = True
     
@@ -473,7 +473,7 @@ def find_strings(grid, words):
     result = []
     
     # insert all input strings in trie
-    trie_for_words = Trie()
+    trie_for_words = Trie5()
     for word in words:
         trie_for_words.insert(word)
     
@@ -522,3 +522,103 @@ def print_grid(grid):
     for i in grid:
         output = '   '.join(i)
         print("\t", output)
+        
+'''
+prompt: given list of strings "words" and integer "k" -> return k most frequently occurring strings,
+sort in descending order, if multiple -> sort lexicographically 
+
+'''
+
+class TrieNode:
+    def __init__(self):
+        self.children = [None] * 26
+        self.word = None
+    
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def add_word(self, word):
+        current = self.root 
+        for character in word:
+            if current.children[ord(character) - ord('a')] == None:
+                current.children[ord(character) - ord('a')] = TrieNode()
+            current = current.children[ord(character) - ord('a')]
+        current.word = word
+        
+    def get_words(self, node, ans):
+        if node == None:
+            return
+        if node.word != None:
+            ans.append(node.word)
+        for i in range(26):
+            if node.children[i] != None:
+                self.get_words(node.children[i], ans)
+
+from collections import defaultdict
+
+def top_k_frequent_words(words, k):
+    # initialize dictionary to count frequency of each word in input list 
+    frequency_map = defaultdict(int)
+    
+    # initialize buckets to store words in ascending order of their frequencies
+    # holds words with same frequency 
+    buckets = [None] * (len(words) + 1)
+    top_k = []
+    
+    # count frequency of each word
+    for word in words:
+        frequency_map[word] += 1
+        
+    # store frequencies of words in dictionary and initialize each bucket with trie that stores words with same frequency
+    for word, frequency in frequency_map.items(): # organizing words into bucket based on frequency 
+        if buckets[frequency] == None:
+            buckets[frequency] = Trie() # initialize each bucket with trie that stores words with same freq
+        buckets[frequency].add_word(word)
+    
+    # iterate through buckets from highest to lowest freq and retrieve first k words
+    # iterate through buckets in reverse order to get most frequent words 
+    for i in range(len(buckets) - 1, -1, -1):  
+        if buckets[i] is not None:
+            retrieve_words = []
+            
+            # retrieve words from Trie in lexicographical order
+            buckets[i].get_words(buckets[i].root, retrieve_words)
+            if len(retrieve_words) < k:
+                # add all word if number of words less than k 
+                top_k.extend(retrieve_words)
+                k -= len(retrieve_words)
+            else:
+                # add only top k words
+                top_k.extend(retrieve_words[:k])
+                break
+    return top_k    
+    
+def generate_frequency_map(words):
+    frequency_map = defaultdict(int)
+    
+    for word in words:
+        frequency_map[word] += 1
+    
+    print("\n\tFrequency map: ")
+    for key, value in frequency_map.items():
+        print(f"\t{key}: {value}")
+
+# Driver code
+def main():
+    words = [["apple", "banana", "orange", "banana", "banana"],
+            ["cat", "dog", "fish", "bird", "cat", "dog", "fish", "bird"],
+            ["python"] * 10,
+            ["a", "b", "c", "a", "b", "a"],
+            ["tree", "bush", "flower", "tree", "bush", "tree", "rock", "rock", "grass"]]
+    
+    k = [2, 4, 1, 3, 4]
+
+    for i in range(len(words)):
+        print(i + 1,".\tInput list: ", words[i])
+        generate_frequency_map(words[i])
+        print(f"\n\tTop {k[i]} frequent word(s):", top_k_frequent_words(words[i], k[i]))
+        print("-" * 100)
+
+if __name__ == "__main__":
+    main()
