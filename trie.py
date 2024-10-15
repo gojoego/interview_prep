@@ -525,7 +525,7 @@ def print_grid(grid):
         
 '''
 prompt: given list of strings "words" and integer "k" -> return k most frequently occurring strings,
-sort in descending order, if multiple -> sort lexicographically 
+sort in descending order, if multiple -> sort lexicographically, time and space O(N), N = words
 
 '''
 
@@ -593,32 +593,26 @@ def top_k_frequent_words(words, k):
                 top_k.extend(retrieve_words[:k])
                 break
     return top_k    
-    
-def generate_frequency_map(words):
-    frequency_map = defaultdict(int)
-    
-    for word in words:
-        frequency_map[word] += 1
-    
-    print("\n\tFrequency map: ")
-    for key, value in frequency_map.items():
-        print(f"\t{key}: {value}")
 
-# Driver code
-def main():
-    words = [["apple", "banana", "orange", "banana", "banana"],
-            ["cat", "dog", "fish", "bird", "cat", "dog", "fish", "bird"],
-            ["python"] * 10,
-            ["a", "b", "c", "a", "b", "a"],
-            ["tree", "bush", "flower", "tree", "bush", "tree", "rock", "rock", "grass"]]
+# given int n, create function that returns all numbers in range 1 to n in lexicographical order
+def lexicographical_order(n):
+    result = []
     
-    k = [2, 4, 1, 3, 4]
+    # insert numbers from 1 to n into trie, each number split into digits by trie and saved as trie nodes
+    trie = Trie5() 
+    for i in range(1, n + 1):
+        trie.insert(str(i))
+    
+    # traverse trie structure in preorder traversal format
+    # append each trie node to result array by prefixing parent nodes until root 
+    lex_traversal(trie.root, '', result)
+    
+    # return result array as it contains lexicographical order of n numbers 
+    return result
 
-    for i in range(len(words)):
-        print(i + 1,".\tInput list: ", words[i])
-        generate_frequency_map(words[i])
-        print(f"\n\tTop {k[i]} frequent word(s):", top_k_frequent_words(words[i], k[i]))
-        print("-" * 100)
-
-if __name__ == "__main__":
-    main()
+def lex_traversal(node, prefix, result):
+    if node.is_string:
+        result.append(int(prefix))
+    
+    for digit in sorted(node.children.keys()):
+        lex_traversal(node.children[digit], prefix + digit, result)
