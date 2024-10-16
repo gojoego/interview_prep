@@ -22,7 +22,7 @@ real world problem: memory management
 '''
 
 # create function that determines whether or not a string is a palindrome, time O(n), space O(1) 
-def is_palindrome(string):
+def palindrome_checker(string):
     # initialize 2 pointers at beginning and end of string 
     left = 0
     right = len(string) - 1
@@ -180,3 +180,109 @@ def sort_colors(colors):
         
     # keep iterating until current pointer exceeds end pointer 
     return colors
+
+# prompt: given sentence, reverse order of words w/o affecting order of letter within given word
+import re
+# time and space O(n)
+def reverse_words(sentence):
+    # remove extra spaces and strip leading/trailing spaces
+    sentence = re.sub(' +', '', sentence.strip())
+    
+    # convert sentence to list of characters for in-place modifications as strings immutable in Python
+    sentence = list(sentence)
+    string_length = len(sentence) - 1
+    
+    # reverse entire string
+    string_reverser(sentence, 0, string_length)
+    start = 0
+    
+    # start iterating over reversed string using pointers, start and end, initialized to index 0
+    for end in range(0, string_length + 1):
+        # while iterating and when end points to space, reverse word pointed by start and end - 1
+        if end == string_length or sentence[end] == ' ':
+            # include end character for last word 
+            end_index = end if end == string_length else end - 1
+            
+            # reverse current word 
+            string_reverser(sentence, start, end_index)
+            
+            # once word has been reversed, update start and end to start index of next word
+            start = end + 1 
+
+    # repeat process until entire string iterated and return string 
+    return ''.join(sentence)
+    
+# helper function that reverses characters from start to end in place
+def string_reverser(string, start_rev, end_rev):
+    while start_rev < end_rev:
+        string[start_rev], string[end_rev] = string[end_rev], string[start_rev]
+        start_rev += 1
+        end_rev += 1
+        
+# prompt: given string word and abbreviation abbr, return True if abbreviation matches 
+# given string, otherwise return False, time O(n), space O(1) 
+def valid_word_abbreviation(word, abbr):
+    # initialize 2 pointers, both set to 0, for word and abbreviation 
+    word_index, abbr_index = 0, 0
+    
+    # iterate through abbreviation string until abbreviation pointer reaches its length
+    while abbr_index < len(abbr):
+        # if current character in abbr is a digit, validate and calculate number from 
+        # consecutive digits, then skip that many characters in word 
+        if abbr[abbr_index].isdigit():
+            if abbr[abbr_index] == '0':
+                return False
+            num = 0
+
+            while abbr_index < len(abbr) and abbr[abbr_index].isdigit():
+                num = num * 10 + int(abbr[abbr_index])
+                abbr_index += 1
+            # skip number of characters in word as found in abbreviation 
+            word_index += num
+        # alternatively, if current character in abbr is a letter, ensure it matches 
+        # corresponding character in word 
+        else:
+            # check if characters match, then increment pointers, return False if so 
+            if word_index >= len(word) or word[word_index] != abbr[abbr_index]:
+                return False
+            word_index += 1
+            abbr_index += 1
+        # continue process above until either mismatch is found or end of abbr reached
+    
+    # once both pointers reach end of their strings, return True, otherwise False 
+    return word_index == len(word) and abbr_index == len(abbr)
+
+# palindrome check string if 1 character removed, time O(n), space O(1)
+def is_palindrome(s):
+    # initialize 2 pointers at opposite ends of string 
+    left = 0
+    right = len(s) - 1
+    
+    removed = False # track whether character removed to allow at most one removal 
+    
+    # while loop that runs while pointers do not cross 
+    while left < right:
+        # if values at left and right indexes match, move both toward middle until they meet
+        if s[left] == s[right]:
+            left += 1
+            right += 1
+        # if mismatch occurs, skip one of the elements from either left or right side 
+        # check rest of string for palindrome 
+        else:
+            if removed: # if character already removed, no longer valid palindrome 
+                return False
+            # check if removing left character makes remaining substring palindrome
+            if s[left + 1] == s[right]:
+                left += 1
+            # skip element from otherside and check for palindrome
+            # check if removing right character makes remaining substring palindrome 
+            elif s[left] == s[right - 1]:
+                right -= 1
+            # if neither removal helps, cannot be valid palindrome 
+            else: # if no palindrome obtained, return False 
+                return False
+            # mark that character has been removed 
+            removed = True
+
+    # return True if no more than 1 mismatch occurs 
+    return True
