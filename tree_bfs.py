@@ -181,3 +181,219 @@ def level_order_traversal_2nd(root):
     
     # joing all level representations stored in result list with ":" as separator and return 
     return " : ".join(result)
+
+# given binary tree, return zigzag level order traversal, time and space O(n) 
+from collections import deque
+
+def zigzag_level_order(root):
+    # if root NULL, return empty list 
+    if root is None:
+        return []
+    
+    # creating empty list to store results 
+    results = [] # initialize 2D array to store output 
+    
+    # creating deque with root node as only element
+    dq = deque([root])
+    
+    # initialize order flag reverse to False, indicates direction of traversal 
+    reverse = False
+     
+    # iterate over deque as long as it is not empty 
+    while len(dq):
+        # getting size of current level 
+        size = len(dq)
+        # insert empty list at end of results list 
+        results.insert(len(results), [])
+        
+        # traverse nodes in current level -> for each dequed element, add its children to deque 
+        # from front if value of reverse True, otherwise, append them to back of deque
+        for i in range(size):
+            # check direction of traversal -> deque elements, enque from back if value of reversed True
+            # otherwise enque them from front and maintain order of nodes 
+            # for each level, append array of its nodes to results array  
+            if not reverse:
+                # if direction left to right, pop node from start/left and add to current level 
+                node = dq.popleft()
+                results[len(results) - 1].append(node.data)
+                
+                # add left and right child nodes of current node to deque
+                if node.left:
+                    dq.append(node.left)
+                if node.right:
+                    dq.append(node.right)
+            else:
+                # if direction is right to left, pop node from back/right and add to current level
+                node = dq.pop()
+                results[len(results) - 1].append(node.data)
+                
+                # add right and left child nodes of current node to deque 
+                if node.right:
+                    dq.appendleft(node.right)
+                if node.left:
+                    dq.appendleft(node.left)
+        
+        reverse = not reverse
+              
+    return results
+
+'''
+
+statement: given perfect binary tree, connect all nodes of same hierarchical level by setting next pointer 
+to its immediate right its immediate right node, next pointers all NULL 
+
+perfect binary tree: all levels completely filled with nodes and leaf nodes at same level 
+
+'''
+
+class EduTreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+        self.next = None
+
+class EduBinaryTree:
+    def __init__(self, nodes):
+        self.root = self.createBinaryTree(nodes)
+
+    def createBinaryTree(self, nodes):
+        if len(nodes) == 0:
+            return None
+
+        # Create the root node of the binary tree
+        root = EduTreeNode(nodes[0].data)
+
+        # Create a queue and add the root node to it
+        queue = Queue()
+        queue.put(root)
+
+        # Start iterating over the list of nodes starting from the second node
+        i = 1
+        while i < len(nodes):
+            # Get the next node from the queue
+            curr = queue.get()
+
+            # If the node is not None, create a new TreeNode object for its left child,
+            # set it as the left child of the current node, and add it to the queue
+            if nodes[i] is not None:
+                curr.left = EduTreeNode(nodes[i].data)
+                queue.put(curr.left)
+
+            i += 1
+
+            # If there are more nodes in the list and the next node is not None,
+            # create a new TreeNode object for its right child, set it as the right child
+            # of the current node, and add it to the queue
+            if i < len(nodes) and nodes[i] is not None:
+                curr.right = EduTreeNode(nodes[i].data)
+                queue.put(curr.right)
+
+            i += 1
+
+        # Return the root of the binary tree
+        return root
+    
+    # Function to find the given node and return its next node
+    def get_next_node(root, nodeData):
+        queue = [root]  # Use a queue for level-order traversal
+
+        while queue:
+            current = queue.pop(0)
+
+            if current.data == nodeData:
+                return current.next
+
+            if current.left:
+                queue.append(current.left)
+            if current.right:
+                queue.append(current.right)
+
+        return None
+
+# time O(n), space O(1)
+def populate_next_pointers(root):
+    # check if root node empty, return NULL if so 
+    if not root:
+        return root
+    
+    # traverse each level of tree starting from leftmost node 
+    mostleft = root
+    while mostleft.left:
+        # initialize current node as mostleft node of current level 
+        current = mostleft
+        
+        # loop through current level 
+        while current:
+            # for each node on current level, connect current node to its immediate right node using next pointer 
+            current.left.next = current.right
+            
+            # if there is a next node on same level
+            if current.next:
+                # connect current node's right child to left child of its next node
+                current.right.next = current.next.left 
+            
+            # move to next node on same level
+            current = current.next 
+        
+        # move down to next level 
+        mostleft = mostleft.left 
+            
+    # return modified root node 
+    return root
+
+from queue import Queue
+
+def naive_populate_next_pointers(root):
+    if not root: 
+        return None
+    
+    # create empty queue to perform BFS
+    queue = Queue()
+    # enqueue root node into queue 
+    queue.put(root)
+    
+    # perform level-order traversal 
+    while not queue.empty():
+        # initialize variable for number of nodes in current level 
+        level_size = queue.qsize()
+        previous_node = None
+        
+        # traverse through all nodes at current level 
+        for i in range(level_size):
+            current_node = queue.get()
+            
+            # set next pointer of previous node 
+            if previous_node:
+                previous_node.next = current_node
+                
+            previous_node = current_node
+            
+            # enqueue left and right children
+            if current_node.left:
+                queue.put(current_node.left)
+            if current_node.right:
+                queue.put(current_node.right)
+    
+    return root
+
+def display_tree(root, level=0, prefix="Root: "):
+    if not root:
+        print("\t" * level + prefix + "None")
+        return
+    
+    # Print the current node
+    print("\t" * level + prefix + str(root.data))
+    
+    # Recursively print the left and right children, increasing the level (indentation)
+    if root.left or root.right:
+        if root.left:
+            display_tree(root.left, level + 1, "L--- ")
+        else:
+            print("\t" * (level + 1) + "L--- None")
+        
+        if root.right:
+            display_tree(root.right, level + 1, "R--- ")
+        else:
+            print("\t" * (level + 1) + "R--- None")
+
