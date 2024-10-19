@@ -475,3 +475,37 @@ def collect_nodes_at_column(root, column, target_column, result):
         
     collect_nodes_at_column(root.left, column - 1, target_column, result)
     collect_nodes_at_column(root.right, column + 1, target_column, result)
+    
+# create function that checks a tree for symmetry, time and space O(n)
+def is_symmetric(root):
+    # create queue and insert root's left and right node
+    queue = []
+    queue.append(root.left)
+    queue.append(root.right)
+    
+    # start traversing tree from root node
+    while queue:
+        # in loop, dequeue 2 elements and store in left and right 
+        left = queue.pop(0)
+        right = queue.pop(0)
+        
+        # if left and right NULL, continue traversing and dequeue next elements 
+        if not left and not right:
+            continue
+        
+        # if any one from left and right NULL, return False
+        if not left or not right:
+            return False
+    
+        # if value of left not equal to value of right, return False 
+        if left.data != right.data:
+            return False
+    
+        # enqueue left node of left, right node of right, right node of left, left node of right
+        queue.append(left.left)
+        queue.append(right.right)
+        queue.append(left.right)
+        queue.append(right.left)
+    
+    # loop terminates when queue empty, return True 
+    return True
