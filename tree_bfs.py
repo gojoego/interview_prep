@@ -397,3 +397,81 @@ def display_tree(root, level=0, prefix="Root: "):
         else:
             print("\t" * (level + 1) + "R--- None")
 
+from collections import defaultdict
+
+# find vertical order of binary tree when root given, values of nodes from top to bottom in each column ->
+# column by column from left to right, more than 1 node in same column/row, return values left to right, time/space O(n) 
+def vertical_order(root):
+    if root == None:
+        return []
+    
+    # keep track of maximum and minimum column indices
+    node_list = defaultdict(list) # hash map where key = index of column and value = list of codes in column 
+    min_column = 0
+    max_index = 0
+    
+    # push root into queue 
+    queue = deque([(root, 0)]) # keeps track of order of nodes that need to be visited, initialize w root at column 0
+    
+    # traverse tree, level by level, starting from root node 
+    while queue:
+        node, column = queue.popleft()
+        
+        if node is not None:
+            temp = node_list[column]
+            temp.append(node.data)
+            node_list[column] = temp # populate hash map with (index,node) pairs
+            
+            # get min and max column numbers for tree 
+            min_column = min(min_column, column)
+            max_index = max(max_index, column)
+            
+            # push nodes to queue along with their column index 
+            # add current node's left and right child into queue 
+            # if node has children, assign column index current - 1 to left child & current + 1 to right child
+            queue.append((node.left, column - 1))
+            queue.append((node.right, column + 1))
+
+    # return node values for each column index, from minimum to maximum 
+    return [node_list[x] for x in range(min_column, max_index + 1)]
+
+def naive_vertical_order(root):
+    if root is None:
+        return []
+    
+    min_max = [0,0]
+    
+    find_min_max_columns(root, 0, min_max)
+    
+    min_column = min_max[0]
+    max_column = min_max[1]
+    
+    result = []
+    
+    for column in range(min_column, max_column + 1):
+        column_nodes = []
+        collect_nodes_at_column(root, 0, column, column_nodes)
+        if column_nodes:
+            result.append(column_nodes)
+    
+    return result
+    
+def find_min_max_columns(root, column, min_max):
+    if root is None:
+        return
+    
+    min_max[0] = min(min_max[0], column)
+    min_max[0] = max(min_max[1], column)
+    
+    find_min_max_columns(root.left, column - 1, min_max)
+    find_min_max_columns(root.left, column + 1, min_max) 
+    
+def collect_nodes_at_column(root, column, target_column, result):
+    if root is None:
+        return
+    
+    if column == target_column:
+        result.append(root.data)
+        
+    collect_nodes_at_column(root.left, column - 1, target_column, result)
+    collect_nodes_at_column(root.right, column + 1, target_column, result)
