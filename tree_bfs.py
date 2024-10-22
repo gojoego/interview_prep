@@ -509,3 +509,105 @@ def is_symmetric(root):
     
     # loop terminates when queue empty, return True 
     return True
+
+'''
+prompt: given 2 words, src and dest, and words, return number of words in shortest
+transformation sequence from src to dest, return 0 for no sequences 
+
+transformation sequence: every pair differs single character
+
+time and space O(N x M) where N = number of words, M = length of each word 
+'''
+
+def word_ladder(src, dest, words):
+    # create set from given words for faster lookup
+    words_set = set(words)
+
+    # if dest not in set, return 0
+    if dest not in words_set:
+        return 0
+    
+    # queue for words to be checked
+    queue = []
+    # push src word into queue
+    queue.append(src)   
+    
+    # counter to store length of sequence 
+    length = 0
+    
+    # check words until queue empty 
+    while queue:
+        # increment counter in every iteration
+        length += 1
+        
+        # store length of queue 
+        size = len(queue)
+        
+        # check all words in current level 
+        for _ in range(size):
+            # pop word from queue
+            current = queue.pop(0)
+            
+            # iterate on each character of popped word 
+            for i in range(len(current)):
+                alphabet = "abcdefghijklmnopqrstuvwxyz"
+                
+                # iterate with all possible characters 
+                for letter in alphabet:
+                    # strings immutable -> create list to replace ith character of popped word 
+                    temp = list(current)
+                    temp[i] = letter
+                    temp = "".join(temp)
+                    
+                    # check if new word is dest 
+                    if temp == dest:
+                        # return value of counter once dest word found
+                        return length + 1 
+                    
+                    # find all words in set that differ by 1 character from popped word 
+                    # push all such words in queue and remove from set 
+                    if temp in words_set:
+                        queue.append(temp)
+                        words_set.remove(temp)
+    
+    # repeat until queue empty or destination word found 
+    return 0
+
+# given root of perfect binary tree, connect nodes left to right, rightmost connects to first node next level
+def connect_all_siblings(root):
+    # if tree empty, return Null 
+    if root == None:
+        return None
+    
+    # initialize list to act as queue for level-order traversal 
+    queue = []
+    queue.append(root)
+    
+    # previous node that will be used to connect to current node 
+    previous = None
+    
+    # traverse each level of tree starting from leftmost node 
+    while queue:
+        # get current node (dequeue first element)
+        current = queue.pop(0)
+    
+        # connect each node of current level to its immediate right node using next pointer
+        # connect rightmost node of current level to first node of immediate next level  
+        if previous:
+            previous.next = current
+            
+        # update previous node to be current 
+        previous = current
+        
+        # enqueue left and right children of current node 
+        if current.left:
+            queue.append(current.left)
+        if current.right:
+            queue.append(current.right)
+    
+    # ensure last node's next pointer is None 
+    if previous:
+        previous.next = None
+    
+    # return root node of tree 
+    return root
