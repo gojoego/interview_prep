@@ -103,39 +103,168 @@ class DesignHashMap():
     def remove(self, key):
         hash_key = key % self.key_space
         self.bucket[hash_key].remove(key)
+
+# given numerator and denominator, return fraction in string format, time and space O(pd), pd = lowest denominator
+def fraction_to_decimal(numerator, denominator):
+    # declare result variable to store result in form of string 
+    result = ""
+    # declare hash map to store remainder as key length as value 
+    remainder_map = {}
+    
+    # if numerator 0, return 0
+    if numerator == 0:
+        return '0'
+    
+    # if numerator or denominator negative
+    if (numerator < 0) ^ (denominator < 0):
+        result += '-' # append minus character to result string
+    
+        # make numerator and denominator positive 
+        numerator = abs(numerator)
+        denominator = abs(denominator)
+
+    # calculate quotient and remainder from given numerator and denominator 
+    quotient = numerator/denominator
+    remainder = (numerator % denominator) * 10 
+    # append quotient to result 
+    result += str(int(quotient))
+    
+    # check if remainder 0, return result 
+    if remainder == 0:
+        return result
+    else: # if remainder not 0, append . to result
+        result += "."
         
-def main():
-    input_hash_map = DesignHashMap()
-    keys = [5, 2069, 2070, 2073, 4138, 2068]
-    keys_list = [5, 2069, 2070, 2073, 4138, 2068]
-    values = [100, 200, 400, 500, 1000, 5000]
-    funcs = ["Get", "Get", "Put", "Get",
-             "Put", "Get", "Get", "Remove",
-             "Get", "Get", "Remove", "Get"]
-    func_keys = [[5], [2073], [2073, 250], [2073], 
-                 [121, 110], [121], [2068], [2069], [2069],
-                 [2071], [2071], [2071]]
+        # start loop until remainder 0
+        while remainder != 0: # check if remainder in hash map
+            # if remainder exists in hash map, create recurring decimal from fraction
+            if remainder in remainder_map.keys():
+                beginning = remainder_map.get(remainder)
+                left = result[0: beginning]
+                right = result[beginning: len(result)]
+                result = left + "(" + right + ")"
+                return result
+        
+            # add to hash map if remainder doesn't exist in hash map 
+            remainder_map[remainder] = len(result)
+            
+            quotient = remainder / denominator
+            
+            result += str(int(quotient))
+            
+            remainder = (remainder % denominator) * 10 
+        
+        return result
+    
+def naive_fraction_to_decimal(numerator, denominator):
+    result = "" # declare result variable to store result as string 
+    
+    if numerator == 0: # return string 0 if numerator is 0
+        return '0'
+    
+    # append "-" to result if negative 
+    if (numerator < 0) ^ (denominator < 0):
+        result += '-'
+    
+    # convert parameters to positive 
+    numerator = abs(numerator)
+    denominator = abs(denominator)
+    
+    # calculate quotient and remainder
+    quotient = numerator // denominator
+    remainder = numerator % denominator * 10
+    result += str(quotient)
+    
+    # return result if no remainder
+    if remainder == 0:
+        return result
+    
+    # append decimal point to result if remainder 
+    result += "."
+    
+    remainder_array = [] # stores remainders
+    decimal_part = ""
+    
+    # loop until remainder 0 or repetition found
+    while remainder != 0:
+        # check if remainder in array
+        if remainder in remainder_array:
+            # find start of repeating part
+            repeat_index = remainder_array.index(remainder)
+            non_repeating_part = decimal_part[:repeat_index]
+            repeating_part = decimal_part[repeat_index:]
+            result += non_repeating_part + "(" + repeating_part + ")"
+            return result
+        
+        # if not found, add remainder to array 
+        remainder_array.append(remainder)
+        
+        # get next digit and update remainder
+        next_digit = remainder // denominator
+        decimal_part += str(next_digit)
+        remainder = (remainder % denominator) * 10 
+    
+    # append non-repeating decimal part to result 
+    result += decimal_part
 
-    for i in range(len(keys)):
-        input_hash_map.put(keys[i], values[i])
-
-    for i in range(len(funcs)):
-        if funcs[i] == "Put":
-            print(
-                i + 1,  ".\t put(", func_keys[i][0],  ", ", func_keys[i][1],  ")", sep="")
-            if not func_keys[i][0] in keys_list:
-                keys_list.append(func_keys[i][0])
-            input_hash_map.put(func_keys[i][0], func_keys[i][1])
-        elif funcs[i] == "Get":
-            print(i + 1, ".\t get(", func_keys[i][0], ")", sep="")
-            print("\t Value returned: ", input_hash_map.get(
-                func_keys[i][0]), sep="")
-        elif funcs[i] == "Remove":
-            print(i + 1,  ". \t remove(", func_keys[i][0], ")", sep="")
-            input_hash_map.remove(func_keys[i][0])
-
-        print("-"*100)
+    return result   
 
 
-if __name__ == '__main__':
-    main()
+'''
+problem statement: for the given stream of message requests and their timestamps as input, 
+implement a logger rate limiter system that decides whether the current message request is displayed,
+decision depends on whether the same message has already been displayed in the last S seconds, 
+decision is FALSE if so, as this message is considered a duplicate, return TRUE otherwise 
+
+'''
+from collections import deque
+
+class RequestLoggerNaive:
+    def __init__(self, time_limit):
+        # queue to process incoming requests
+        self.queue = deque()
+        # set to ID and remove duplicates
+        self.request_set = set()
+        self.limit = time_limit
+
+    # function decides whether the message request should be accepted or rejected, time and space O(n)
+    def message_request_decision(self, timestamp, request): # event driven algo 
+        # every incoming message prompts ID and removal of message w timestamp more than
+        # S seconds older than new timestamp
+        while self.queue and timestamp - self.queue[0][0] >= self.limit:
+            # remove from both queue and set 
+            old_timestamp, old_request = self.queue.popleft()
+            self.request_set.remove(old_request)
+        
+        # after time limit expiry check, check if duplicate
+        if request in self.request_set:
+            return False
+        else:
+            # add to queue and request set, then return True  
+            self.queue.append((timestamp, request))
+            self.request_set.add(request)
+            return True 
+
+class RequestLogger:
+    def __init__(self, time_limit):
+        # initialize requests hash map 
+        self.requests = {}
+        self.limit = time_limit
+
+    # function decides whether the message request should be accepted or rejected, time O(1), space O(n)
+    def message_request_decision(self, timestamp, request):
+        # check each arriving request if new or repeated by checking hash map 
+        # repeated request -> check if there's been S seconds since last request 
+        # if so, update timestamp for specific message in hash map 
+        if request not in self.requests or timestamp - self.requests[request] >= self.limit:
+            # incoming messages = keys, timestamps = values, key/value pairs to store in hash map 
+            self.requests[request] = timestamp
+            return True
+        else: # if repeat request arrives before time limit expires, reject it 
+            return False
+    
+    
+    
+    
+    
+    
