@@ -262,9 +262,88 @@ class RequestLogger:
             return True
         else: # if repeat request arrives before time limit expires, reject it 
             return False
+
+'''
+statement: given 2 distinct arrays, nums1 and nums2, where nums1 is a subset of nums2
+find all greater elements for nums1 values in corresponding places of nums2, find next 
+greater element present on right side of x in nums2 and store in ans array 
+
+'''
+
+# time O(n), space O(n)
+def next_greater_element(nums1, nums2):
+    # empty stack 
+    stack = []
+    # empty hash map
+    map = {} 
     
+    # iterate over nums2
+    for current in nums2: 
+        # while stack not empty and current element greater than top stack element 
+        while stack and current > stack[-1]: # compare each element w top stack element 
+            # if current nums2 element greater than top element, pop top element
+            # put key/value pair in hash map, popped element is key, current element is value 
+            map[stack.pop()] = current
+        
+        # push current element onto stack
+        stack.append(current) 
+        
+        # repeat process until nums2 completely iterated 
     
+    # iterate over remaining elements in stack, pop and set values to -1 in map 
+    while stack:
+        map[stack.pop()] = -1
     
+    ans = []
+        
+    # iterate over nums1
+    for num in nums1:
+        # for each element, append corresponding value from hash map to new array ans 
+        ans.append(map[num])
+        
+    # return ans array as final result 
+    return ans
+
+# time O(n1 x n2), space O(1)
+def naive_next_greater_element(nums1, nums2):
+    result = []
     
+    # for each element in nums1, search for next greater in nums2 
+    for x in nums1:
+        # find index of x in nums2 
+        found = False
+        for i in range(len(nums2)):
+            if nums2[i] == x:
+                found = True
+                # search for next greater from index forward 
+                next_greater = -1
+                for j in range(i + 1, len(nums2)):
+                    if nums2[j] > x:
+                        next_greater = nums2[j]
+                        break
+                result.append(next_greater)
+                break
     
-    
+        # if element not found in nums2, append -1 
+        if not found:
+            result.append(-1)
+            
+    return result
+
+def main():
+    A = [[2, 4], [3, 2, 5], [14, 45, 52], [1, 3, 2], [4, 2], [0]]
+    B = [[1, 2, 3, 4], [2, 3, 5, 1], [52, 14, 45, 65], [1, 3, 2, 4, 5],
+         [1, 2, 4, 3], [0]]
+    x = 1
+    for i in range(len(A)):
+        print(x, ".\tNums 1 = ", A[i], sep="")
+        print("\tNums 2 = ", B[i], sep="")
+        print("")
+        print("\tThe Next Greater Element Array = ",
+              next_greater_element(A[i], B[i]))
+        print(100 * '-')
+        x += 1
+
+
+if __name__ == '__main__':
+    main()
