@@ -330,20 +330,30 @@ def naive_next_greater_element(nums1, nums2):
             
     return result
 
-def main():
-    A = [[2, 4], [3, 2, 5], [14, 45, 52], [1, 3, 2], [4, 2], [0]]
-    B = [[1, 2, 3, 4], [2, 3, 5, 1], [52, 14, 45, 65], [1, 3, 2, 4, 5],
-         [1, 2, 4, 3], [0]]
-    x = 1
-    for i in range(len(A)):
-        print(x, ".\tNums 1 = ", A[i], sep="")
-        print("\tNums 2 = ", B[i], sep="")
-        print("")
-        print("\tThe Next Greater Element Array = ",
-              next_greater_element(A[i], B[i]))
-        print(100 * '-')
-        x += 1
+# check if 2 strings isomorphic, fixed mapping exists for characters in both, time O(n), space O(1) 
+def is_isomorphic(string1, string2):
+    # hash map to store mapping from string1 to string2
+    str1_str2 = {}
+    # hash map to store mapping from string2 to string1
+    str2_str1 = {}
+    
+    for i in range(len(string1)):
+        # if char in hash map and mapped to diff char than one to be mapped, algo terminates, return False
+        char1 = string1[i]
+        char2 = string2[i]
+        
+        # if char1 exists in hash map and has different mapping, return False
+        if char1 in str1_str2 and str1_str2[char1] != char2:
+            return False
+        
+        # if char2 exists in hash map and has different mapping, return False
+        if char2 in str2_str1 and str2_str1[char2] != char1:
+            return False
+        
+        # check if character in hash map before storing mappings of characters 
+        # map char of one string to another and vice versa 
+        str1_str2[char1] = char2
+        str2_str1[char2] = char1
 
-
-if __name__ == '__main__':
-    main()
+    # if all mappings valie in both hash maps, return True 
+    return True
