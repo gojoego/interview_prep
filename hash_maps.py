@@ -357,3 +357,45 @@ def is_isomorphic(string1, string2):
 
     # if all mappings valie in both hash maps, return True 
     return True
+
+from collections import defaultdict
+from typing import List
+
+# statement: identify duplicate files in list of directory info paths, each group has 2+ duplicates, output list 
+# with groups and paths to duplicates, time and space O(M x N) where M = # values in list, N = items in paths  
+def find_duplicate(paths):
+    # dictionary to store content as key and list of file paths as value 
+    file_map = defaultdict(list)
+    
+    # iterate over input string/each path path in input array
+    for path in paths:
+        # split all values by space/splitting directory path and files 
+        values = path.split(' ')
+        
+        # iterate through each file in current dictionary path 
+        for i in range(1, len(values)):
+            # split every spliced value further by '(' to separate file contents and their names 
+            name_content = values[i].split('(')
+            
+            # extract content part 
+            content = name_content[1][:-1]
+            
+            directory = values[0]
+            file_name = name_content[0]
+            
+            file_path = f"{directory}/{file_name}"
+            
+            # check if file name in hash map as key
+            # put file path and name in list associated with that hash map key 
+            # no entry in map -> create one w file contents as key, file path w/ file name in list (hash map value)
+            file_map[content].append(file_path)
+    
+    result = [] # list to store result groups of duplicate file paths 
+
+    # for every item in map, check if key has more than 1 value in associated list and return every such value
+    for paths in file_map.values():
+        # only add to result if 1+ files w same content
+        if len(paths) > 1:
+            result.append(paths)
+            
+    return result
