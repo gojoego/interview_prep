@@ -399,3 +399,100 @@ def find_duplicate(paths):
             result.append(paths)
             
     return result
+
+# create class that calculates dot product of two given sparse vectors, space O(l)
+class SparseVector:
+    # time O(n)
+    # create 2 sparse vectors using nums1 and nums2
+    def __init__(self, nums):
+        # initialize hash map to store non-zero elements and their indexes 
+        self.hashmap = {}
+        for i, n in enumerate(nums):
+            if n != 0:
+                self.hashmap[i] = n     
+
+    # time O(l) where l = length of hash map 
+    def dot_product(self, vec):
+        # initialize variable to store final result of dot product 
+        sum = 0
+        
+        # iterate over vectors
+        for i, n in self.hashmap.items():
+            # for each index, take product of corresponding elements of 2 vectors
+            if i in vec.hashmap:
+                # sum all resulting products to get final dot product
+                sum += n * vec.hashmap[i]
+        
+        # return sum obtained from dot product calculation
+        return sum
+
+'''
+statement: given list of scores for multiple students as items where items[i] = [ID, score]
+indicates student ID and score -> compute top 5 average scores for each student, return result 
+array where result[j] = [ID, TopFiveAvg], ascending order, time O(nlogn), space O(n) 
+
+'''
+
+from heapq import nlargest    
+
+def high_five(items): 
+    # dictionary w student id and scores
+    id_scores = defaultdict(list)
+    
+    # variable tracking highest student ID so far 
+    max_id = 0
+    
+    # iterate through items to populate scores dictionary 
+    for id, score in items: 
+        # append score to list of scores for current student ID 
+        id_scores[id].append(score)
+        
+        # update highest student ID to determine number of students that need processing 
+        if id > max_id:
+            max_id = id
+    
+    result = []
+    
+    # iterate through all possible IDs from 1 to max_id inclusive 
+    for i in range(1, max_id + 1):
+        # check if there are scores for current ID 
+        if i in id_scores:
+            # sort scores and find top 5 scores for each student 
+            scores = nlargest(5, id_scores[i])
+            
+            # calculate average of top 5 scores using integer division
+            average = sum(scores) // 5
+            
+            # store averages of top 5 scores with respective IDs in result list 
+            result.append([i, average])
+
+    # return final result list with each student's ID and their calculated average of top 5 scores 
+    return result
+
+# find longest palindrome in given string, time and space O(n)
+def longest_palindrome(s):
+    frequencies = {}
+    
+    # iterate through input string to count character occurrences 
+    for character in s:
+        # store frequencies in hash map
+        frequencies[character] = frequencies.get(character, 0) + 1
+    
+    length = 0
+    odd_found = False
+    
+    # iterate through frequencies in map, calculate number of pairs of each character 
+    # that will appear in longest palindrome of even length
+    for count in frequencies.values():
+        # multiply total number of pairs by 2 to find length palindrome of even length
+        length += (count // 2) * 2 
+        
+        if count % 2 == 1:
+            odd_found = True
+
+    # if length of longest even palindrome less than input length, increment by 1
+    # to adjust for possibility of an odd-length palindrome
+    if odd_found:
+        length += 1
+        
+    return length
