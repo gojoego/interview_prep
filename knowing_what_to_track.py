@@ -35,3 +35,45 @@ real-world problems
 -clickstream analysis 
 
 '''
+
+# check string for palindromic permutation
+from itertools import permutations
+
+# time O(n! x n^2), space O(n!)
+def naive_permute_palindrome(st):
+    # computer all possible permutations of given string
+    for perm in set(permutations(st)):
+        # iterate over permutation to see if palindrome 
+        perm_str = ''.join(perm)
+        if is_palindrome(perm_str):
+            return True
+    return False
+
+def is_palindrome(s):
+    return s == s[::-1]
+
+# notes 1. even length characters occur even times 2. odd length, middle character once 3. true for all permutations
+# time O(n) where n = number of elements in hashmap, space O(1)
+def permute_palindrome(st):
+    frequencies = {}
+    
+    # traverse input string starting from first character
+    for i in st:
+        # populate hash map with characters in string w/ frequency of occurence of each character
+        if i in frequencies:
+            frequencies[i] += 1 # increment by 1 if already present in map 
+        else:
+            frequencies[i] = 1 
+    
+    count = 0
+    
+    # traverse hash map to get count of characters with odd number of occurrences 
+    for ch in frequencies.keys():
+        if frequencies[ch] % 2:
+            count += 1
+    
+    # if count exceeds 1, no palindromic permutation exists 
+    if count <= 1:
+        return True
+    else:
+        return False 
