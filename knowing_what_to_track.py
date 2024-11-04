@@ -77,3 +77,131 @@ def permute_palindrome(st):
         return True
     else:
         return False 
+
+# check if string is anagram of another
+def is_anagram_naive(string1, string2):
+    if len(string1) != len(string2):
+        return False
+    
+    return sorted(string1) == sorted(string2)
+
+# time O(n), space O(1) 
+def is_anagram(str1, str2):
+    # check whether lengths of strings equal, return False if not
+    if len(str1) != len(str2):
+        return False
+    
+    # initialize hash map, character = key, value = count 
+    char_counts = {}
+    
+    # iterate over characters in str1, increment count for each character
+    for ch in str1:
+        if ch in char_counts:
+            char_counts[ch] += 1
+        else:
+            char_counts[ch] = 1
+    
+    # iterate over characters in str1, decrement count for each character
+    for ch in str2:
+        if ch in char_counts:
+            char_counts[ch] -= 1
+        else:
+            return False
+            
+    # if count for all characters 0, return True, False otherwise 
+    for key in char_counts:
+        if char_counts[key] != 0:
+            return False
+    
+    return True 
+
+
+'''
+statement: tic-tac-toe on n x n board, rules: move guaranteed to be valid if mark placed on 
+empty block, no more moves allowed once winning condition reached, player who succeeds 
+in placing n of their marks in horizontal, vertical or diagonal row wins game
+
+implement TicTacToe class w constructor that initializes object and allows players to play on
+board of size n x n, move(row,col,player) that indicates where player places mark on cell(row,col),
+move guaranteed to be valid and returns player ID if current player wins and 0 if no one wins 
+
+'''
+
+class TicTacToe:
+    # constructor will be used to initialize TicTacToe data members
+    def __init__(self, n): 
+        # create 2 lists to track number of moves made in each row/column
+        self.rows = [0] * (n)
+        self.columns = [0] * (n)
+        # initialize 2 counters to store count of moves made along either diagonal to 0
+        self.diagonal = 0
+        self.anti_diagonal = 0
+
+        pass        
+
+    # move will be used to play move by specific player and identify who wins at each move
+    def move(self, row, col, player):
+        current_player = -1
+        if player == 1:
+            current_player = 1
+        
+        n = len(self.rows)
+        
+        # if player 1 move, increment count in relevant lists
+        # if player 2 move, decrement count in relevants lists 
+        self.rows[row] += current_player
+        self.columns[col] += current_player
+        
+        # if mark player 1 placed along diagonal, increment relevant counter
+        # if mark player 2 on diagonal, decrement relevant counter 
+        if row == col:
+            self.diagonal += current_player
+            
+        if col == (n - row - 1):
+            self.anti_diagonal += current_player
+        
+        # if count of any element of list equal to n or if either of 2 diagonal counters
+        # equal to n, return current player as winner     
+        if abs(self.rows[row]) == n or abs(self.columns[col]) == n \
+        or abs(self.diagonal) == n or abs(self.anti_diagonal) == n:
+            return player
+
+        # if neither count equal n, return 0
+        return 0
+    
+# given list of words/phrases, group words that are anagrams of each other
+def group_anagrams(strs):
+    # initialize hash map to store key/value pairs for strings' frequency and anagrams 
+    result = {}
+    
+    for s in strs:
+        # key will be character list of length 26, initialized to all 0s, value will be array of anagrams
+        count = [0] * 26 # place for every single letter in our string 
+        for i in s:
+            index = ord(i) - ord('a')
+            
+            count[index] += 1
+        
+        key = tuple(count)
+        if key in result:
+            result[key].append(s)
+        else: 
+            result[key] = [s]
+    
+    return result.values()
+    
+    # start traversing list of strings, traverse each character in string
+    # reset character list to all 0s before beginning second traversal 
+    
+    # calculate index of each letter of string through ASCII value of character 
+    # in character list, increment value at this index by 1 
+    
+    # check whether current character list present as key in hash map after traversal 
+    
+    # if current character list present as key in hash map, add string to list of anagrams
+    # corresponding to key 
+    
+    # otherwise, add new key/value pair to hash map with current character array as key and
+    # traversed string as value in array 
+    
+    # repeat this process until all strings traversed   
