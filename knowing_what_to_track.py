@@ -128,7 +128,7 @@ move guaranteed to be valid and returns player ID if current player wins and 0 i
 '''
 
 class TicTacToe:
-    # constructor will be used to initialize TicTacToe data members
+    # constructor will be used to initialize TicTacToe data members, time O(n)
     def __init__(self, n): 
         # create 2 lists to track number of moves made in each row/column
         self.rows = [0] * (n)
@@ -140,8 +140,9 @@ class TicTacToe:
         pass        
 
     # move will be used to play move by specific player and identify who wins at each move
+    # time O(1), space O(n) where n = length of arrays rows and columns 
     def move(self, row, col, player):
-        current_player = -1
+        current_player = -1 
         if player == 1:
             current_player = 1
         
@@ -168,7 +169,7 @@ class TicTacToe:
 
         # if neither count equal n, return 0
         return 0
-    
+
 # given list of words/phrases, group words that are anagrams of each other
 def group_anagrams(strs):
     # initialize hash map to store key/value pairs for strings' frequency and anagrams 
@@ -189,19 +190,24 @@ def group_anagrams(strs):
             result[key] = [s]
     
     return result.values()
+
+# time O(nllogl) where n = strings list length and l = longest string length, space O(1) 
+def group_anagrams_naive(strings):
+    # initialize hashmap to store strings as key and lists of anagrams as values
+    result = {}
     
-    # start traversing list of strings, traverse each character in string
-    # reset character list to all 0s before beginning second traversal 
+    for string in strings:
+        # sore current string 
+        sorted_string = ''.join(sorted(string))
+        
+        # check if sorted string is present as key in hash map 
+        if sorted_string in result:
+            # append original unsorted string to list of anagrams for this key
+            result[sorted_string].append(string)
+        else:
+            # add new key/value pair to hash map 
+            result[sorted_string] = [string]
     
-    # calculate index of each letter of string through ASCII value of character 
-    # in character list, increment value at this index by 1 
-    
-    # check whether current character list present as key in hash map after traversal 
-    
-    # if current character list present as key in hash map, add string to list of anagrams
-    # corresponding to key 
-    
-    # otherwise, add new key/value pair to hash map with current character array as key and
-    # traversed string as value in array 
-    
-    # repeat this process until all strings traversed   
+    # return list of grouped anagrams
+    return result.values()
+   
