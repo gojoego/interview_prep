@@ -210,4 +210,106 @@ def group_anagrams_naive(strings):
     
     # return list of grouped anagrams
     return result.values()
-   
+
+'''
+statement: design stack data structure to push and pop elements with max frequency
+
+init() - constructor to declare frequency stack 
+push(value) - push int data onto stack top 
+pop() - remove and return most frequent stack element 
+'''
+
+from collections import defaultdict
+
+class FreqStack:
+    def __init__(self):
+        # create hash map or dictionary to store frequencies of all elements 
+        self.frequency = defaultdict(int)
+        self.group = defaultdict(list)
+        self.max_frequency = 0
+
+    # time O(1), space O(n)
+    def push(self, value):
+        # get frequency for given value and increment frequency for given value 
+        freq = self.frequency[value] + 1
+        self.frequency[value] = freq
+        
+        # check if max frequency is lower than new frequency of given value 
+        if freq > self.max_frequency:
+            self.max_frequency = freq
+        
+        self.group[freq].append(value)
+
+    # time O(1), space O(n)
+    def pop(self):
+        value = ""
+        
+        if self.max_frequency > 0:
+            value = self.group[self.max_frequency].pop()
+            self.frequency[value] -= 1
+            
+            if not self.group[self.max_frequency]:
+                self.max_frequency -= 1
+        else:
+            return - 1
+        return value
+    
+class NaiveFreqStack:
+    def __init__(self):
+        # use list to maintain elements in stack order 
+        self.stack = []
+        # dictionary to keep track of frequencies of elements 
+        self.frequency = defaultdict(int)
+        
+    def push(self, value):
+        # add element to stack 
+        self.stack.append(value)
+        # increment its frequency
+        self.frequency[value] += 1
+        
+    def pop(self):
+        # if stack empty, return -1
+        if not self.stack:
+            return -1 
+        
+        # find element with max frequency
+        max_freq = max(self.frequency.values())
+        
+        # iterate from end of list to maintain "stack" behavior (most recent item)
+        for i in range(len(self.stack) - 1, -1, -1):
+            if self.frequency[self.stack[i]] == max_freq:
+                # once found, remove it and decrease its frequency
+                element = self.stack.pop(i)
+                
+                self.frequency[element] -= 1
+                
+                if self.frequency[element] == 0:
+                    del self.frequency[element] # cleanup if frequency zero 
+                    
+                return element
+        
+        return -1 # if no element found (edge case)
+
+# time O(n), space O(1)
+def first_unique_char(s):
+    character_count = {} # declare hash map
+    string_length = len(s) # stores length of input string 
+    
+    # iterate over input string 
+    for i in range(string_length):
+        # check if each character exists in hash map 
+        if s[i] in character_count:
+            # increment value if in hash map
+            character_count[s[i]] += 1
+        # otherwise, add new key/value pair to hash map and set value to 1
+        else:
+            character_count[s[i]] = 1
+            
+    # traverse over input string to find map characters w value 1 
+    for i in range(string_length):
+        # return index if character exists
+        if character_count[s[i]] == 1:
+            return i 
+    
+    # return -1 otherwise
+    return -1 
