@@ -313,3 +313,123 @@ def first_unique_char(s):
     
     # return -1 otherwise
     return -1 
+
+# return start indices of 2 anagram, time O(n), space O(1)
+def find_anagrams(a, b):
+    # if string b length greater than a, return empty list 
+    if len(b) > len(a):
+        return []
+    
+    result = [] # list to store output aka start indices of anagrams of string b in a 
+    
+    # create 2 hash maps for counting
+    hash_a = defaultdict(int) # count of characters in sliding window inside string a 
+    hash_b = defaultdict(int) # frequency of characters in string b
+  
+    # populate hash b with count of characters in string b 
+    for i in range(len(b)):
+        hash_b[b[i]] += 1 
+  
+    # while traversing string a, move window rightward by one character in each iteration
+    for window_end in range(len(a)): 
+        # add new element to move window rightward/add new element and its count in hash map a 
+        hash_a[a[window_end]] += 1
+        
+        # if length of window exceeds string b length, make equal by removing leftmost element 
+        if window_end >= len(b):
+            
+            # index of leftmost element in sliding window 
+            window_start = window_end - len(b)
+        
+            # if count of leftmost element is 1, safe to delete from hash map a
+            if hash_a[a[window_start]] == 1:
+                del hash_a[a[window_start]]
+                
+            # if count greater than 1, remove one occurrence of it from hash map a 
+            else:
+                hash_a[a[window_start]] -= 1
+    
+        # if count of characters in hash map a equals b, indicates anagram, append start index to result
+        if hash_a == hash_b:
+            start_index = window_end - len(b) + 1
+            result.append(start_index)
+        
+    # after traversing entire string a, return array of all start indices of anagrams b in string a
+    return result
+
+# give array where each element 2 length, return length of longest palindrome, time 0(n), space O(min(n, |E|^2))
+from collections import Counter
+
+def longest_palindrome(words):
+    # track frequency of each 2 letter word in dictionary
+    frequencies = Counter(words)
+    count = 0
+    central = False 
+    
+    # iterate through dictionary 
+    for word, frequency in frequencies.items():
+        # if word palindrome, check frequency and increment length accordingly 
+        if word[0] == word[1]:
+            # if even occurrences
+            if frequency % 2 == 0:
+                count += frequency
+            # if word has odd occurrences
+            else: # verify presence of central word
+                count += frequency - 1
+                central = True
+    
+        # if word not palindrome, determine frequency of its reverse and increment length accordingly
+        elif word[1] > word[0]:
+            # get min of occurrences of word and its reverse 
+            count += 2 * min(frequency, frequencies[word[1] + word[0]])
+    
+    # after iteration, if central word, increase length accordingly 
+    if central:
+        count += 1
+        
+    return 2 * count
+
+# given array of strings votes, sort teams according to rank, time O(n), space O(1)
+def rank_teams(votes):
+    # create 2D array to store vote counts for each team
+    # first dimension denotes team, second stores votes for each position
+    counts = [[0] * 27 for _ in range(26)]
+    
+    # iterate through each string votes[i] to process ranking given by each voter 
+    for t in range(26):
+        counts[t][26] = chr(ord('A') + t)
+    
+    # for each character votes[i][j] representing team in vote, decrement rank in counts array 
+    for i in range(len(votes)):
+        for j,c in enumerate(votes[i]):
+            counts[ord(c) - ord('A')][j] -= 1
+    
+    # sort counts array based on values in each row 
+    counts.sort()
+    
+    # create empty string result to store final result 
+    result = ""
+    
+    # for each row in sorted counts array, retrieve its corresponding team name and append it to result
+    for i in range(len(votes[0])):
+        result += counts[i][26]
+    
+    # return constructed string result, representing teams in ranked order 
+    return result
+
+def main():
+    rankings = [
+        ["XYZ", "ZXY", "XZY"],
+        ["MNOPQ"],
+        ["AB", "BA"],
+        ["SING", "SIGN", "NIGS", "GINS"],
+        ["QWERTYUIOPASDFGHJKLZXCVBNM", "ZXCVBNMASDFGHJKLQWERTYUIOP"]
+    ]
+    
+    for i in range(len(rankings)):
+        print(i + 1, ".\tVotes: ", '[' + ', '.join(f'"{vote}"' for vote in rankings[i]) + ']', sep="")
+        print("\tRanking: \"", rank_teams(rankings[i]), "\"", sep="")
+        print("-" * 100)
+
+if __name__ == "__main__":
+    main()
