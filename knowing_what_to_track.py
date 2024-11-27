@@ -391,7 +391,7 @@ def longest_palindrome(words):
 
 # given array of strings votes, sort teams according to rank, time O(n), space O(1)
 def rank_teams(votes):
-    # create 2D array to store vote counts for each team
+    # create 2D ar0ray to store vote counts for each team
     # first dimension denotes team, second stores votes for each position
     counts = [[0] * 27 for _ in range(26)]
     

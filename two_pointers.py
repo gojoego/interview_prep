@@ -252,37 +252,73 @@ def valid_word_abbreviation(word, abbr):
     # once both pointers reach end of their strings, return True, otherwise False 
     return word_index == len(word) and abbr_index == len(abbr)
 
-# palindrome check string if 1 character removed, time O(n), space O(1)
-def is_palindrome(s):
-    # initialize 2 pointers at opposite ends of string 
+# determine if string num appears same when rotated 180 degrees, time O(n), space O(1)
+def is_strobogrammatic(num):
+    # dictionary to map each digit to its valid rotated counterpart 
+    dict = {'0': '0', '1': '1', '8': '8', '6': '9', '9': '6'}
+    
+    # 2 pointers: start and end of string 
     left = 0
-    right = len(s) - 1
+    right = len(num) - 1 
     
-    removed = False # track whether character removed to allow at most one removal 
-    
-    # while loop that runs while pointers do not cross 
-    while left < right:
-        # if values at left and right indexes match, move both toward middle until they meet
-        if s[left] == s[right]:
-            left += 1
-            right += 1
-        # if mismatch occurs, skip one of the elements from either left or right side 
-        # check rest of string for palindrome 
-        else:
-            if removed: # if character already removed, no longer valid palindrome 
-                return False
-            # check if removing left character makes remaining substring palindrome
-            if s[left + 1] == s[right]:
-                left += 1
-            # skip element from otherside and check for palindrome
-            # check if removing right character makes remaining substring palindrome 
-            elif s[left] == s[right - 1]:
-                right -= 1
-            # if neither removal helps, cannot be valid palindrome 
-            else: # if no palindrome obtained, return False 
-                return False
-            # mark that character has been removed 
-            removed = True
+    # iterate while left pointer less than or equal to right 
+    while left <= right: # compare digits from both ends checking for match with valid rotation 
+        # check if current digit valid and matches corresponding rotated value 
+        if num[left] not in dict or dict[num[left]] != num[right]:
+            return False # return False if number not strobogrammatic 
+        
+        # move both pointers inward until they cross 
+        left += 1 
+        right -= 1
 
-    # return True if no more than 1 mismatch occurs 
+    # return True if all pairs valid according to strobogrammatic rules 
     return True
+
+# given string, return min number of moves to make palindromic, time O(n^2), space O(1) 
+def min_moves_to_make_palindrome(s):
+    # convert string to list for easier manipulation 
+    s = list(s)
+    
+    # initialize moves with 0 to keep track of number of swaps required 
+    moves = 0
+    
+    i = 0 # start pointer
+    j = len(s) - 1 # end pointer 
+    
+    # start iterating string from either end, loop continues while i < j  
+    while i < j: 
+        k = j
+        
+        # inner loop searching backward from right/j to find character that matches s[i]
+        while k > i:
+            if s[i] == s[k]: # if matching character found
+                # move matching character to correct position on right 
+                for m in range(k, j):
+                    s[m], s[m + 1] = s[m + 1], s[m] # swap
+                    moves += 1 # increment count of swaps 
+                # move right pointer inwards 
+                j -= 1
+                break
+            k -= 1
+            
+        # no matching character found, increment moves by number of swaps needed 
+        # to bring unique character to center 
+        if k == i:
+            moves += len(s) // 2 - i 
+        i += 1 
+        
+    # return moves 
+    return moves
+
+
+# Driver code
+def main():
+    strings = ["ccxx", "arcacer", "w", "ooooooo", "eggeekgbbeg"]
+    
+    for index, string in enumerate(strings):
+        print(f"{index + 1}.\ts: {string}")
+        print(f"\tMoves: {min_moves_to_make_palindrome(string)}")
+        print('-' * 100)
+
+if __name__ == "__main__":
+    main()
