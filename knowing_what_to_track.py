@@ -417,19 +417,76 @@ def rank_teams(votes):
     # return constructed string result, representing teams in ranked order 
     return result
 
-def main():
-    rankings = [
-        ["XYZ", "ZXY", "XZY"],
-        ["MNOPQ"],
-        ["AB", "BA"],
-        ["SING", "SIGN", "NIGS", "GINS"],
-        ["QWERTYUIOPASDFGHJKLZXCVBNM", "ZXCVBNMASDFGHJKLQWERTYUIOP"]
-    ]
+# return number of pairs divisible by 60, time O(n), space O(1)
+def num_pairs_divisible_by_60(time):
+    # array size 60 to store frequency of song durations based on remainders when / by 60 
+    remainders = [0] * 60
+    count = 0 
     
-    for i in range(len(rankings)):
-        print(i + 1, ".\tVotes: ", '[' + ', '.join(f'"{vote}"' for vote in rankings[i]) + ']', sep="")
-        print("\tRanking: \"", rank_teams(rankings[i]), "\"", sep="")
-        print("-" * 100)
+    # loop through each song duration in array 
+    for duration in time:
+        # compute remainder for each song duration by dividing by 60
+        remainder = duration % 60 
+        
+        # if song remainder 0, count pairs with previously seen remainders of 0
+        if remainder == 0:
+            count += remainders[0]
+        else:
+            # otherwise, count pairs w complementary remainder (60 - current remainder)
+            count += remainders[60 - remainder]
+            
+        # increment frequency count for current song's remainder to facilitate future comparison 
+        remainders[remainder] += 1 
+        
+    # return total count of valid pairs 
+    return count
 
-if __name__ == "__main__":
-    main()
+# given string, return min pushes to type after dial pad mapping, tine O(n), space O(1)
+def minimum_pushes(word):
+    # frequency array to store count of each letter
+    frequencies = [0] * 26
+    
+    # iterate through word and store frequency of each letter in array 
+    for character in word: # count occurrences of each letter 
+        frequencies[ord(character) - ord('a')] += 1
+    
+    # sort frequency array in descending order
+    frequencies.sort(reverse=True)
+    
+    # initialize variable with 0 to count number of pushes required to type word 
+    pushes = 0 
+    
+    # for every letter, calculate number of pushes required to obtain if corresponding to 9 available keys
+    for i in range(26):
+        # if all letters processed 
+        if frequencies[i] == 0:
+            break
+        
+        # calculate number of pushes required to obtain all instances of this letter 
+        pushes += (i // 8 + 1) * frequencies[i]
+        
+    # after processing all letters return result variable 
+    return pushes
+
+# check if str ransom_note can be constructed from str magazine
+def can_construct(ransom_note, magazine):
+    # create hash map to store frequencies of each character in magazine 
+    frequencies = [0] * 26
+    
+    # populate hash map with frequencies of characters in magazine 
+    for character in magazine:
+        frequencies[ord(character) - ord('a')] += 1
+    
+    # iterate through each character in ransom note
+    for character in ransom_note:
+        # get index of character in hash map 
+        index = ord(character) - ord('a')
+        
+        # check if character in hash map with greater than 0 count, decrement frequency by 1
+        if frequencies[index] > 0: 
+            frequencies[index] -= 1
+        else:# if frequency of character 0 or not in map, return False 
+            return False
+    
+    # return True if all characters in ransom note have been successfully traversed 
+    return True 
