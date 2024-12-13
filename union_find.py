@@ -111,7 +111,7 @@ def cycle_detector(graph, current, visited, parent):
     return False 
 
 # given m x n grid, 1 = land, 0 = water, return number of islands, time and space O(m x n)
-class UnionFind:
+class UnionFind2:
     
     def __init__(self, grid):
         self.parent = [] 
@@ -157,7 +157,7 @@ def num_islands(grid):
 
     columns = len(grid[0])
     rows = len(grid)
-    union_find = UnionFind(grid)    
+    union_find = UnionFind2(grid)    
 
     # traverse grid, check if 1s have neighbors top, bottom, left, right 
     for row in range(rows):
@@ -176,58 +176,124 @@ def num_islands(grid):
     # at end of traversal, count contains number of islands
     return count 
 
-def main():
+# given 2D array, return max possible number of stones remove if it can only be removed 
+# if it shares either same row or same column, time and space O(n) 
+class UnionFind:
+    # initialize 2 empty dictionaries, parents and ranks
+    def __init__(self):
+        self.parents = {}
+        self.ranks = {}
+    
+    # find which group particular element belongs to
+    def find(self, coordinate):
+        if coordinate != self.parents[coordinate]:
+            self.parents[coordinate] = self.find(self.parents[coordinate])
+        return self.parents[coordinate]
+    
+    # join 2 coordinates into single one
+    # every coordinate of stones parent of itself and has rank 0
+    def union(self, x, y):
+        # set parent of each node to itself if not already present in dictionary 
+        self.parents.setdefault(x, x)
+        self.parents.setdefault(y, y)
+        
+        # set ranks of each node to 0 if not already in dictionary
+        self.ranks.setdefault(x, 0)
+        self.ranks.setdefault(y, 0)
+        
+        # compare ranks of 2 nodes to decide which should be parent 
+        if self.ranks[x] > self.ranks[y]:
+            self.parents[self.find(y)] = self.find(x)
+        elif self.ranks[y] > self.ranks[x]:
+            self.parents[self.find(x)] = self.find(y)
+        # if ranks equal, choose 1 node as parent and increment ranks 
+        else:
+            self.parents[self.find(x)] = self.find(y)
+            self.ranks[y] += 1
 
-    def print_grid(grid):
-        for i in grid:
-            print("\t", i)
+def remove_stones(stones):
+    # using offset for y coordinate to avoid possible clash with x coordinates
+    offset = 100000
+    stone = UnionFind()
+    
+    for x, y in stones:
+        stone.union(x, (y + offset))
+        
+    groups = set()
+    # for each stone, check if it shares row or column with another stone using ranks
+    for i in stone.parents:
+        # if it does, add it to group that has both of these stones 
+        groups.add(stone.find(i))
+    
+    # find number of groups once all stones grouped 
+    num_groups = len(groups)
+    
+    # return difference between number of stones and number of groups formed 
+    return len(stones) - num_groups
 
-    grid1 = [
-        ['1', '1', '1'],
-        ['0', '1', '0'],
-        ['1', '0', '0'],
-        ['1', '0', '1']
-    ]
+def naive_remove_stones(stones):
+    stones = set(map(tuple, stones))
+    removed_count = 0
+    
+    while True:
+        removed = False
+        for stone in list(stones):
+            if can_remove(stone, stones):
+                stones.remove(stone)
+                removed_count += 1 
+                removed = True
+                break
+        if not removed:
+            break
+        
+    return removed_count
 
-    grid2 = [
-        ['1', '1', '1', '1', '0'],
-        ['1', '0', '0', '0', '1'],
-        ['1', '0', '0', '1', '1'],
-        ['0', '1', '0', '1', '0'],
-        ['1', '1', '0', '1', '1']
-    ]
+def can_remove(stone, stones):
+    x, y = stone
+    for s in stones:
+        if s != stone and (s[0] == x or s[1] == y):
+            return True
+    return False
 
-    grid3 = [
-        ['1', '1', '1', '1', '0'],
-        ['1', '0', '0', '0', '1'],
-        ['1', '1', '1', '1', '1'],
-        ['0', '1', '0', '1', '0'],
-        ['1', '1', '0', '1', '1']
-    ]
+# given unsorted array, return longest consecutive element sequence length, time and space O(n)
+class UnionFind:
+    def __init__(self, nums):
+        self.parent = {num: num for num in nums}
+        self.size = {num: 1 for num in nums}
+        self.max_length = 1
+        
+    def find(self, num):
+        if self.parent[num] != num:
+            self.parent[num] = self.find(self.parent[num])
+        return self.parent[num]
+    
+    def union(self, num1, num2):
+        x_root = self.find(num1)
+        y_root = self.find(num2)
+        
+        if x_root != y_root:
+            if self.size[x_root] < self.size[y_root]:
+                x_root, y_root = y_root, x_root
+            self.parent[y_root] = x_root
+            # update size of connected components
+            self.size[x_root] += self.size[y_root]
+            self.max_length = max(self.max_length, self.size[x_root])
 
-    grid4 = [
-        ['1', '0', '1', '0', '1'],
-        ['0', '1', '0', '1', '0'],
-        ['1', '0', '1', '0', '1'],
-        ['0', '1', '0', '1', '0'],
-        ['1', '0', '1', '0', '1']
-    ]
+def longest_consecutive_sequence(nums):
+    if len(nums) == 0:
+        return 0
+    
+    union_conseq = UnionFind(nums)
+    
+    # iterate through each element n in input list 
+    for num in nums:
+        # check whether next number n + 1 is included in input list 
+        if num + 1 in union_conseq.parent:
+            # if it is, merge components that contain those numbers into single connected component
+            union_conseq.union(num, num + 1)
+        
+    # return size of longest connected component 
+    return union_conseq.max_length
 
-    grid5 = [
-        ['1', '0', '1'],
-        ['0', '0', '0'],
-        ['1', '0', '1']
-    ]
-
-    inputs = [grid1, grid2, grid3, grid4, grid5]
-    num = 1
-    for i in inputs:
-        print(num, ".\tGrid:\n", sep = "")
-        print_grid(i)
-        print('\n\tOutput :', num_islands(i))
-        print('-' * 100)
-        num += 1
-
-
-if __name__ == "__main__":
-    main()
+'''
+'''
