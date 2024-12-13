@@ -309,16 +309,60 @@ def min_moves_to_make_palindrome(s):
         
     # return moves 
     return moves
-
-
-# Driver code
-def main():
-    strings = ["ccxx", "arcacer", "w", "ooooooo", "eggeekgbbeg"]
     
-    for index, string in enumerate(strings):
-        print(f"{index + 1}.\ts: {string}")
-        print(f"\tMoves: {min_moves_to_make_palindrome(string)}")
-        print('-' * 100)
+'''
+statement: given string num_str representing palindrome only containing digits, return next possible 
+palindrome using same digits, returned palindrome would be the next largest palindrome, 
+meaning there can be more than one way to rearrange the digits to make a larger palindrome 
+return an empty string if no greater palindrome can be made.
 
-if __name__ == "__main__":
-    main()
+
+'''
+
+def find_next_palindrome(num_str):
+    n = len(num_str)
+    
+    if n == 1:
+        return ""
+    
+    # split input into its left half, 2 halves if even, leave middle unchanged for odd 
+    half_length = n // 2 
+    left_half = list(num_str[:half_length])
+    
+    
+    # apply next permutation on left half by finding first decreasing digit
+    # swapping with next larger digit and reversing remaining digits 
+    if not find_next_permutation(left_half):
+        return ""
+    
+    if n % 2 == 0:
+        next_palindrome = ''.join(left_half + left_half[::-1])
+    # mirror rearranged left half to form right half of palindrome, retain middle for odd
+    else:
+        middle_digit = num_str[half_length]
+        next_palindrome = ''.join(left_half + [middle_digit] + left_half[::-1])
+    
+    # return new palindrome if larger than original input, otherwise return empty string
+    if next_palindrome > num_str:
+        return next_palindrome
+    return ""
+
+def find_next_permutation(digits):
+    # step 1: find first digit smaller after it
+    i = len(digits) - 2
+    
+    while i >= 0 and digits[i] >= digits[i + 1]:
+        i -= 1
+    if i == -1:
+        return False
+    
+    # step 2: find next largest digit to swap with digits[i]
+    j = len(digits) - 1
+    while digits[j] <= digits[i]:
+        j -= 1 
+        
+    # step 3: swap and reverse rest to get smallest next permutation 
+    digits[i], digits[j] = digits[j], digits[i]
+    digits[i + 1:] = reversed(digits[i + 1]) 
+    
+    return True

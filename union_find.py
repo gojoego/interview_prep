@@ -178,7 +178,7 @@ def num_islands(grid):
 
 # given 2D array, return max possible number of stones remove if it can only be removed 
 # if it shares either same row or same column, time and space O(n) 
-class UnionFind:
+class UnionFind3:
     # initialize 2 empty dictionaries, parents and ranks
     def __init__(self):
         self.parents = {}
@@ -214,7 +214,7 @@ class UnionFind:
 def remove_stones(stones):
     # using offset for y coordinate to avoid possible clash with x coordinates
     offset = 100000
-    stone = UnionFind()
+    stone = UnionFind3()
     
     for x, y in stones:
         stone.union(x, (y + offset))
@@ -256,7 +256,7 @@ def can_remove(stone, stones):
     return False
 
 # given unsorted array, return longest consecutive element sequence length, time and space O(n)
-class UnionFind:
+class UnionFind4:
     def __init__(self, nums):
         self.parent = {num: num for num in nums}
         self.size = {num: 1 for num in nums}
@@ -283,7 +283,7 @@ def longest_consecutive_sequence(nums):
     if len(nums) == 0:
         return 0
     
-    union_conseq = UnionFind(nums)
+    union_conseq = UnionFind4(nums)
     
     # iterate through each element n in input list 
     for num in nums:
@@ -296,4 +296,82 @@ def longest_consecutive_sequence(nums):
     return union_conseq.max_length
 
 '''
+statement: given two integers, rows and cols, which represent number of rows and columns in a 
+1-based binary matrix where 0 = land and 1 = water
+
+Day 0, whole matrix all 0s or land, with each passing day, one of the cells of this matrix will 
+get flooded and change from 0 to 1, continues until entire matrix flooded, 1-based array, water_cells,
+that records which cell will be flooded on each day, water_cells[i] = [ri,ci], can only cross if land, 
+can only move in 4 cardinal directions, figure out last day matrix can still be crossed top to bottom
 '''
+class UnionFind:
+    def __init__(self, N):
+        self.reps = []
+        
+        for i in range(N):
+            self.reps.append(i)
+            
+    def find(self, x):
+        if self.reps[x] != x:
+            self.reps[x] = self.find(self.reps[x])
+        return self.reps[x]
+    
+    def union(self, v1, v2):
+        self.reps[self.find(v1)] = self.find(v2)
+
+def last_day_to_cross(rows, cols, water_cells):
+    # initialize variable days to track number of days starting with 0 
+    days = 0
+    # matrix of dimensions rows x cols initialized to 0 (all land day 0)
+    flood_map = [[0 for _ in range(cols)] for _ in range(rows)]
+    
+    # create 2 virtual nodes, 1 before first column and other after last column of matrix 
+    left_node, right_node = 0, rows * cols + 1
+    
+    # specify the directions where water can move
+    water_directions = [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+    
+    # convert water cells from 1 based to 0 based array for convenience 
+    water_cells = [(r - 1, c - 1) for r, c in water_cells]
+
+    # initialize Union Find object to create disjoint set union ds, array - parents 
+    water_connectivity = UnionFind(rows * cols + 2)
+    
+    # start filling matrix with water cells as per given water_cells array 
+    for row, column in water_cells:
+        flood_map[row][column] = 1
+    
+        # each time cell flooded, check if it can connect with any existing water cells 
+        for row_dir, col_dir in water_directions:
+            if within_bounds(row + row_dir, column + col_dir, rows, cols) \
+            and flood_map[row + row_dir][column + col_dir] == 1:
+                water_connectivity.union(find_index(row, column, cols), find_index((row + row_dir), (column + col_dir), cols))
+        if column == 0:
+            water_connectivity.union(find_index(row, column, cols), left_node)
+        if column == cols - 1:
+            water_connectivity.union(find_index(row, column, cols), right_node)
+            
+        # if there exists series of connected water cells, stop and return current value of days as final output
+        if water_connectivity.find(left_node) == water_connectivity.find(right_node):
+            break
+        days += 1
+        
+    
+    return days 
+    # after connecting revcently added water cell to existing water cells, check if 
+    # we get single connected component of water cells from leftmost to rightmost side of matrix 
+    
+    
+    
+    # otherwise, still able to cross matrix top to bottom, increment value of days
+    # repeat process for next cell to be flooded 
+
+
+# checks whether water cells to be connected are within bounds of matrix as per given dimensions 
+def within_bounds(row, col, rows, cols):
+    if not (0 <= col < cols): return False
+    if not (0 <= row < rows): return False
+    return True
+
+def find_index(current_row, current_column, columns):
+    return current_row * columns + (current_column + 1)
