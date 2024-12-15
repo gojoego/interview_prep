@@ -316,6 +316,7 @@ palindrome using same digits, returned palindrome would be the next largest pali
 meaning there can be more than one way to rearrange the digits to make a larger palindrome 
 return an empty string if no greater palindrome can be made.
 
+space and time O(n)
 
 '''
 

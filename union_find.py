@@ -303,6 +303,9 @@ Day 0, whole matrix all 0s or land, with each passing day, one of the cells of t
 get flooded and change from 0 to 1, continues until entire matrix flooded, 1-based array, water_cells,
 that records which cell will be flooded on each day, water_cells[i] = [ri,ci], can only cross if land, 
 can only move in 4 cardinal directions, figure out last day matrix can still be crossed top to bottom
+
+time O((m x n) x a(m x n)) where m = number of matrix rows and n = number of columns in matrix 
+space O(m x n)
 '''
 class UnionFind:
     def __init__(self, N):
@@ -340,9 +343,11 @@ def last_day_to_cross(rows, cols, water_cells):
     # start filling matrix with water cells as per given water_cells array 
     for row, column in water_cells:
         flood_map[row][column] = 1
-    
+ 
         # each time cell flooded, check if it can connect with any existing water cells 
         for row_dir, col_dir in water_directions:
+            # after connecting recently added water cell to existing water cells, check if 
+            # we get single connected component of water cells from leftmost to rightmost side of matrix 
             if within_bounds(row + row_dir, column + col_dir, rows, cols) \
             and flood_map[row + row_dir][column + col_dir] == 1:
                 water_connectivity.union(find_index(row, column, cols), find_index((row + row_dir), (column + col_dir), cols))
@@ -355,18 +360,13 @@ def last_day_to_cross(rows, cols, water_cells):
         if water_connectivity.find(left_node) == water_connectivity.find(right_node):
             break
         days += 1
-        
+
+    # otherwise, still able to cross matrix top to bottom, increment value of days
+    # repeat process for next cell to be flooded        
     
     return days 
-    # after connecting revcently added water cell to existing water cells, check if 
-    # we get single connected component of water cells from leftmost to rightmost side of matrix 
-    
-    
-    
-    # otherwise, still able to cross matrix top to bottom, increment value of days
-    # repeat process for next cell to be flooded 
 
-
+    
 # checks whether water cells to be connected are within bounds of matrix as per given dimensions 
 def within_bounds(row, col, rows, cols):
     if not (0 <= col < cols): return False
