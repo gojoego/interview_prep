@@ -366,7 +366,6 @@ def last_day_to_cross(rows, cols, water_cells):
     
     return days 
 
-    
 # checks whether water cells to be connected are within bounds of matrix as per given dimensions 
 def within_bounds(row, col, rows, cols):
     if not (0 <= col < cols): return False
