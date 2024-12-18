@@ -307,7 +307,7 @@ can only move in 4 cardinal directions, figure out last day matrix can still be 
 time O((m x n) x a(m x n)) where m = number of matrix rows and n = number of columns in matrix 
 space O(m x n)
 '''
-class UnionFind:
+class UnionFind5:
     def __init__(self, N):
         self.reps = []
         
@@ -338,7 +338,7 @@ def last_day_to_cross(rows, cols, water_cells):
     water_cells = [(r - 1, c - 1) for r, c in water_cells]
 
     # initialize Union Find object to create disjoint set union ds, array - parents 
-    water_connectivity = UnionFind(rows * cols + 2)
+    water_connectivity = UnionFind5(rows * cols + 2)
     
     # start filling matrix with water cells as per given water_cells array 
     for row, column in water_cells:
@@ -374,3 +374,99 @@ def within_bounds(row, col, rows, cols):
 
 def find_index(current_row, current_column, columns):
     return current_row * columns + (current_column + 1)
+
+'''
+statement: n x n grid is composed of 1x1 squares, where each 1x1 square consists of a “/”, “\”, or 
+a blank space, characters divide the square into adjacent regions, given the grid represented as a 
+string array, return the number of adjacent regions
+
+Note: backslash characters are escaped, so “\” is represented as “\\”, 1x1 square in the grid will 
+be referred to as a box
+
+time and space O(n^2)
+'''
+
+class UnionFind:
+    # constructor
+    def __init__(self, n):
+        self.parent = [0] * n
+        self.rank = [1] * n 
+        for i in range(n):
+            self.parent[i] = i 
+
+    # function to find which subset particular element belongs to 
+    def find(self, v):
+        if self.parent[v] != v:
+            self.parent[v] = self.find(self.parent[v])
+        return self.parent[v]
+    
+    # function to join 2 subsets into single subset 
+    def union(self, v1, v2):
+        p1, p2  = self.find(v1), self.find(v2)
+        if p1 != p2:
+            if self.rank[p1] > self.rank[p2]:
+                self.parent[p2] = p1 
+                self.rank[p1] = self.rank[p1] + self.rank[p2]
+            else:
+                self.parent[p1] = p2 
+                self.rank[p2] = self.rank[p2] + self.rank[p1]
+        
+def regions_by_slashes(grid):
+    N = len(grid)
+    
+    # divide each box in n x n grid into 4 sectors: north, south, east, west
+    find_union = UnionFind(4 * N * N)
+    
+    # traverse each box and combine regions in box based on input character
+    for row_index, row in enumerate(grid):
+        for column_index, value in enumerate(row):
+            root = 4 * (row_index * N + column_index)
+    
+            if value in '/ ':
+                # connecting north and west components of box 
+                find_union.union(root + 0, root + 1)
+                
+                # connecting east and south components of box 
+                find_union.union(root + 2, root + 3)
+                
+            if value in '\ ':
+                # connecting north and east components of box 
+                find_union.union(root + 0, root + 2)
+                
+                # connecting west and south components of box
+                find_union.union(root + 1, root + 3) 
+            
+            # connect current box with its top, bottom, left, right neighboring boxes 
+                
+            # connecting south component of current box with north component of box below it 
+            if row_index + 1 < N:
+                find_union.union(root + 3, (root + 4 * N) + 0)
+                
+            # connecting north component of current box with south component of box above it 
+            if row_index - 1 >= 0: 
+                find_union.union(root + 0, (root - 4 * N) + 3)
+                
+            # connecting east component of current box with west component of box on its right
+            if column_index + 1 < N:
+                find_union.union(root + 2, (root + 4) + 1)
+            
+            if column_index - 1 >= 0:
+                find_union.union(root + 1, (root - 4) + 2)
+
+    # repeat process until entire grid traversed 
+    
+    # count number of connected components that represent regions in grid 
+    return sum(find_union.find(x) == x for x in range(4 * N * N))
+
+# driver code
+def main():
+    inputs = [["/\\", "\\/"], [" /", "  "], [" /", "/ "],
+              [" /\\", "\\/ ", ' \\ '], [' \\/', " /\\", "\\/ "]]
+    for i in range(len(inputs)):
+        print(i + 1, '.\tInput list of strings: ', inputs[i], sep="")
+        print('\tOutput: ', regions_by_slashes(inputs[i]))
+        print('-' * 100)
+
+
+if __name__ == "__main__":
+    main()
