@@ -386,7 +386,7 @@ be referred to as a box
 time and space O(n^2)
 '''
 
-class UnionFind:
+class UnionFind6:
     # constructor
     def __init__(self, n):
         self.parent = [0] * n
@@ -415,7 +415,7 @@ def regions_by_slashes(grid):
     N = len(grid)
     
     # divide each box in n x n grid into 4 sectors: north, south, east, west
-    find_union = UnionFind(4 * N * N)
+    find_union = UnionFind6(4 * N * N)
     
     # traverse each box and combine regions in box based on input character
     for row_index, row in enumerate(grid):
@@ -458,15 +458,205 @@ def regions_by_slashes(grid):
     # count number of connected components that represent regions in grid 
     return sum(find_union.find(x) == x for x in range(4 * N * N))
 
-# driver code
-def main():
-    inputs = [["/\\", "\\/"], [" /", "  "], [" /", "/ "],
-              [" /\\", "\\/ ", ' \\ '], [' \\/', " /\\", "\\/ "]]
-    for i in range(len(inputs)):
-        print(i + 1, '.\tInput list of strings: ', inputs[i], sep="")
-        print('\tOutput: ', regions_by_slashes(inputs[i]))
-        print('-' * 100)
+'''
+statement: given a 2D array, accounts, where each row, accounts[i], is an array of strings, 
+such that the first element, accounts[i][0], is a name, while the remaining elements are emails 
+associated with that account, task is to determine if two accounts belong to the same person by 
+checking if both accounts have the same name and at least one common email address, if two 
+accounts have the same name, they might belong to different people since people can have the same 
+name, however, all accounts that belong to one person will have the same name, implies that a 
+single person can hold multiple accounts
+
+-output should be a 2D array in which the first element of each row is the name
+-rest of the elements are the merged list of that user's email addresses in sorted order
+-there should be one row for each distinct user, and for each user, each email address 
+should be listed only once
+
+note: use a sort function that sorts the email addresses based on the ASCII value of each character
+
+time O(nk.a(n)) + O(m.(k.log(k))), space O(nk) where
+n = total number of accounts given initially in input 
+k = max number of emails in any of these accounts
+m = unique number of accounts 
+
+'''
+class UnionFind7:
+    def __init__(self, n):
+        self.parents = list(range(n))
+
+    def find(self, node):
+        if self.parents[node] == node:
+            return node
+        return self.find(self.parents[node])
+    
+    def union(self, node1, node2):
+        root_node1 = self.find(node1)
+        root_node2 = self.find(node2)
+        if root_node1 != root_node2:
+            self.parents[root_node2] = root_node1
+    
+def accounts_merge(accounts):
+    # initialize constructor that will create parents array with unique IDs 
+    union_find = UnionFind7(len(accounts))
+    
+    # assign unique IDs to each account
+    email_mapping = {}
+    
+    # iterate over each account, go over email, set their IDs per account they belong to
+    for i, account in enumerate(accounts):
+        emails = account[1:]
+        for email in emails:
+            # if email already exists in map, take union
+            if email in email_mapping:
+                # before union, make sure both accounts have same name 
+                if account[0] != accounts[email_mapping[email]][0]:
+                    return
+                union_find.union(email_mapping[email], i)
+               
+            # add email with its ID to map     
+            email_mapping[email] = i
+    
+    # create map to store merged accounts
+    merged_accounts = defaultdict(list)
+    
+    # merge all accounts that share same email(s) into single account
+    for email, ids in email_mapping.items():
+        merged_accounts[union_find.find(ids)].append(email)
+    
+    # iterate over list of merged accounts and sort emails in each account
+    final_merged = []
+    for parent, emails in merged_accounts.items():
+        final_merged.append([accounts[parent][0]] + sorted(emails))
+         
+    return final_merged
 
 
-if __name__ == "__main__":
-    main()
+'''
+statement: given a network of n x n nodes as an adjacency matrix graph with the ith 
+node directly connected to the jth node if graph[i][j] == 1, 
+
+list of nodes, initial, is given, which contains nodes initially infected by malware,
+when two nodes are connected directly and at least one of them is infected by malware, 
+both nodes will be infected by malware, spread of malware will continue until every node 
+in the connected component of nodes has been infected
+
+after the infection has stopped spreading, M will represent the final number of nodes in 
+the entire network that have been infected with malware
+
+return a node from initial such that, when this node is removed from the graph, M is minimized,
+if multiple nodes can be removed to minimize M, return the node with the smallest index
+
+note: if a node was removed from the initial list of infected nodes, 
+it might still be infected later on due to the malware's spread
+
+time O(n^2) where n x n is dimension of adjacency matrix 
+space O(n) where n = size of hash map 
+'''
+class UnionFind:
+    # constructor 
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [1] * n 
+        
+    # function to find which subset particular element belongs to 
+    def find(self, i):
+        if self.parent[i] != i:
+            self.parent[i] = self.find(self.parent[i])
+        return self.parent[i]
+    
+    # function to join 2 subsets into single subset 
+    def union(self, x, y):
+        root_x, root_y = map(self.find, (x, y))
+        if root_x == root_y:
+            return 
+        small, big = sorted([root_x, root_y], key=lambda z: self.rank[z])
+        self.parent[small] = big
+        self.rank[big] += self.rank[small]
+
+def min_malware_spread(graph, initial):
+    # stores length of graph
+    length = len(graph)
+    
+    # make connected components out of all connected nodes in graph through Union Find algorithm
+    union_find = UnionFind(length) # calls UnionFind constructor
+    
+    for x in range(length): 
+        for y in range(length):
+            if graph[x][y]: # finding all connected components of graph
+                union_find.union(x, y)
+    
+    # traverse initial array and store number of infection in each connected component 
+    # with infection in hash map, infected 
+    infected = defaultdict(int)
+    
+    # count number of initial infected nodes each connected component has 
+    for i in initial:
+        infected[union_find.find(i)] += 1
+    
+    maximum_size = 0
+    candidate_node = min(initial)
+    
+    # count all infected nodes each connected component has 
+    for j in initial:
+        infection_count = infected[union_find.find(j)]
+        # calculate size of component
+        component_size = union_find.rank[union_find.find(j)]
+    
+        # if connected component from infected hash map has more than 1 infected node, ignore it 
+        if infection_count != 1: 
+            continue 
+        
+        # if there are multiple components of same size that would count as largest connected
+        # component, choose one with smallest index         
+        if component_size > maximum_size:
+            maximum_size = component_size
+            candidate_node = j
+        elif component_size == maximum_size and j < candidate_node:
+            candidate_node = j 
+    
+    return candidate_node
+
+'''
+statement: given a 2D list, edges, which represents a bidirectional graph, each vertex is labeled 
+from 0 to n - 1, and each edge in the graph is represented as a pair, [xi,yi], showing a 
+bidirectional edge between xi and yi, each pair of vertices is connected by at most one edge, 
+and no vertex is connected to itself, determine whether a valid path exists from the source vertex 
+to the destination vertex, if it exists, return TRUE, otherwise, return FALSE
+
+time O(m * a(n)), where n = number of nodes, m = number of union find operations, a = inverse Ackermann function
+space O(n) -> root and rank lists use n space for saving values 
+'''
+
+class UnionFind:
+    def __init__(self, n):
+        self.root = list(range(n))
+        self.rank = [1] * n 
+        
+    def find(self, x):
+        if self.root[x] != x:
+            self.root[x] = self.find(self.root[x])
+        return self.root[x]
+    
+    def union(self, x, y):
+        # find roots of both a and b 
+        root_x, root_y = self.find(x), self.find(y)
+        
+        # merge both nodes based on ranks if roots different
+        if root_x != root_y:
+            if self.rank[root_x] > self.rank[root_y]:
+                root_x, root_y = root_y, root_x
+            
+            self.rank[root_y] += self.rank[root_x]
+            self.root[root_x] = root_y
+            
+def valid_path(n, edges, source, destination):
+    # initialize Union Find object for n nodes
+    union_find = UnionFind(n)
+    
+    # call union function for each edge between nodes a and b 
+    for x, y in edges:
+        union_find.union(x, y)
+     
+    # after processing all edges, check if source and destination nodes have same root 
+    # return True if both source and destination nodes have same root 
+    return union_find.find(source) == union_find.find(destination)
