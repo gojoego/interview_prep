@@ -552,7 +552,7 @@ it might still be infected later on due to the malware's spread
 time O(n^2) where n x n is dimension of adjacency matrix 
 space O(n) where n = size of hash map 
 '''
-class UnionFind:
+class UnionFind8:
     # constructor 
     def __init__(self, n):
         self.parent = list(range(n))
@@ -578,7 +578,7 @@ def min_malware_spread(graph, initial):
     length = len(graph)
     
     # make connected components out of all connected nodes in graph through Union Find algorithm
-    union_find = UnionFind(length) # calls UnionFind constructor
+    union_find = UnionFind8(length) # calls UnionFind constructor
     
     for x in range(length): 
         for y in range(length):
@@ -627,7 +627,7 @@ time O(m * a(n)), where n = number of nodes, m = number of union find operations
 space O(n) -> root and rank lists use n space for saving values 
 '''
 
-class UnionFind:
+class UnionFind9:
     def __init__(self, n):
         self.root = list(range(n))
         self.rank = [1] * n 
@@ -651,7 +651,7 @@ class UnionFind:
             
 def valid_path(n, edges, source, destination):
     # initialize Union Find object for n nodes
-    union_find = UnionFind(n)
+    union_find = UnionFind9(n)
     
     # call union function for each edge between nodes a and b 
     for x, y in edges:
@@ -660,3 +660,183 @@ def valid_path(n, edges, source, destination):
     # after processing all edges, check if source and destination nodes have same root 
     # return True if both source and destination nodes have same root 
     return union_find.find(source) == union_find.find(destination)
+
+'''
+statement: imagine standing at a distance, viewing the skyline of a city, the skyline 
+is the shape formed by all the buildings in the city when viewed together, your task 
+is to determine the shape of this skyline, given all the buildings' position and height,
+each building is represented by three values in the array buildings, where 
+buildings[i] = [lefti, righti, heighti]:
+
+left @ i = x coordinate where ith building starts 
+right @ i = x coordinate where ith building ends
+height @ i = height of ith building 
+
+all buildings are rectangles that sit on flat ground (height 0), skyline should be 
+a list of points that define its outline, with each point showing where the height 
+changes as you move from left to right, final point should have a height of 0, marking 
+where the last building ends
+
+note: output skyline should not have multiple horizontal lines at the same height in a 
+row. For example, an output like 
+
+time O(nlogn), space O(n)
+'''
+
+class UnionFind10:
+    def __init__(self, N):
+        self.root = list(range(N))
+        
+    def find(self, x):
+        if self.root[x] != x:
+            self.root[x] = self.find(self.root[x])
+        return self.root[x]
+    
+    def union(self, x, y):
+        self.root[x] = self.root[y]
+        
+def get_skyline(buildings):
+    # sort and store all the unique x-coordinates from buildings 
+    coordinates = sorted(list(set([x for building in buildings for x in building[:2]])))
+    n = len(coordinates)
+    
+    # create list of heights initialized w 0 to store max height at each x-coordinate 
+    heights = [0] * n
+    
+    # create map to quickly look up index of coordinate in sorted list 
+    index_map = {x: idx for idx, x in enumerate(coordinates)}
+    
+    # Union Find object to find and merge roots 
+    union_find = UnionFind10(n)
+    
+    # sort buildings from tallest to shortest so taller processed first 
+    buildings.sort(key=lambda x: -x[2])
+    
+    skyline = []
+    
+    # for each building, convert its left and right edges into indexes
+    for left_x, right_x, height in buildings:
+        # convert left and right x-coordinates of building to their respective indexes in sorted list 
+        left, right = index_map[left_x], index_map[right_x]
+        
+        # update height for all x-coordinates between left and right 
+        while left < right:
+            # find current root of left index
+            left = union_find.find(left)
+            
+            # merge with right if root of left still smaller b/c segment not fully merge
+            if left < right:
+                # merge left index w right index (connect these 2 parts of skyline) 
+                union_find.union(left, right)
+                
+                # update height at current left index to current building height 
+                heights[left] = height
+                
+                # move to next index 
+                left += 1 
+    
+    # loop through heights and add points to skyline only when height changes 
+    for i in range(n):
+        # only add points to skyline when height changes from previous point 
+        if i == 0 or heights[i] != heights[i - 1]:
+            skyline.append([coordinates[i], heights[i]])
+            
+    return skyline
+
+'''
+statement: We are given three arrays:
+
+equations: here, each equations[i] represents a pair of variables [a[i], b[i]], 
+where each a[i] or b[i] is a string that represents a single variable
+
+values: this array contains real numbers that are the result values when the first 
+variable in equations[i] is divided by the second, for example, 
+if equations[i] = ["m", "n"] and values[i] = 2.0, it means that m / n = 2.0
+
+queries: here, each queries[i] represents a pair of variables [c[i], d[i]], 
+where each c[i] or d[i] is a string that represents a single variable, the answer 
+to each query must be calculated as c[i] / d[i]
+
+given these arrays, find the result of each queries[i] by dividing the first variable 
+with the second, to answer all the queries correctly, use the given equations and values,
+if it's impossible to determine the answer to any query based on the given equations and 
+values, return -1.0
+
+note: input is always valid, you may assume that evaluating the queries will not result 
+in division by zero and that there is no contradiction
+
+time O((m + n).logn), space O(n)
+'''
+class UnionFind:
+    def __init__(self):
+        self.parent = {}
+        self.ratio = {}
+        
+    def union(self, x, y, value):
+        
+        if x not in self.parent:
+            self.parent[x] = x    
+            self.ratio[x] = 1.0
+        if y not in self.parent:
+            self.parent[y] = y
+            self.ratio[y] = 1.0
+        
+        root_x = self.find(x)
+        root_y = self.find(y) 
+        
+        if root_x != root_y:
+            self.parent[root_x] = root_y
+            self.ratio[root_x] = value * self.ratio[y]/self.ratio[x]     
+    
+    def find(self, x):
+        if x != self.parent[x]:
+            original_parent = self.parent[x]
+            self.parent[x] = self.find(self.parent[x])
+            self.ratio[x] *= self.ratio[original_parent]
+        return self.parent[x]
+        
+def evaluate_equations(equations, values, queries):
+    # step 1: initialize union find structure to group variables
+    union_find = UnionFind() # variables connected by chain of divisions should be in same group
+    
+    # step 2: iterate through list of input equations, invoking union(dividend, divisor, quotient) with each
+    # in order to populate union find structure 
+    for (numerator, denominator), value in zip(equations, values):
+        union_find.union(numerator, denominator, value)
+        
+    # step 3
+    results = []
+    for numerator, denominator in queries:
+        if numerator not in union_find.parent or denominator not in union_find.parent:
+            results.append(-1.0)
+            continue
+    
+        root_numerator = union_find.find(numerator)
+        root_denominator = union_find.find(denominator)
+        
+        if root_numerator == root_denominator:
+            results.append(union_find.ratio[numerator] / union_find.ratio[denominator])
+        else:
+            results.append(-1.0)
+    
+    return results
+
+ #additionally set up dictionary that stores 
+    # variables with respective weights and groups they belong to 
+    # weights of every variable initialized 1
+    
+    
+    
+
+    
+    # if either of the query variables do not appear in input equations, return -1.0
+    
+    # otherwise, if both variables appear in input equation, use find(variable) function to get group 
+    # and weight of each item, find(variable) function will update weights in case of any discrepancies 
+    
+    # if both variables belong to same group, chain of division exists between them and we can 
+    # return division of their weights as result 
+    
+    # otherwise, if 2 variables don't belong to same group, they aren't connected by chain 
+    # of divisions and we return -1.0 as result 
+    return 
