@@ -531,3 +531,391 @@ class MinStack:
             return None
         else:
             return self.min_stack.top()
+        
+'''
+statement: design a Range Module data structure that effectively tracks ranges of numbers using 
+half-open intervals and allows querying these ranges, a half-open interval [left,right) includes 
+all real numbers n where left ≤ n < right
+
+implement the RangeModule class with the following specifications:
+
+    constructor(): initializes a new instance of the data structure, time O(1)
+    add Range(): adds the half-open interval [left, right) to the ranges being tracked, 
+        if the interval overlaps with existing ranges, it should add only the numbers within 
+        [left, right) that are not already being tracked, time O(n)
+    query Range(): returns true if every real number within interval [left, right) is currently being 
+        tracked, and false otherwise, time O(n)
+    remove Range(): Removes tracking for every real number within the half-open interval [left, right),
+        time O(logn)
+
+space O(n)
+'''
+
+class RangeModule():
+
+    # initialize data structure
+    def __init__(self):
+        self.ranges = []
+    
+    # helper function to find indexes of ranges that might overlap given interval [left, right)
+    def check_intervals(self, left, right):
+        min_range = 0
+        max_range = len(self.ranges) - 1
+        mid = len(self.ranges) // 2
+        
+        while mid >= 1:
+            while min_range + mid < len(self.ranges) and self.ranges[min_range + mid - 1][1] < left:
+                min_range += mid 
+            while max_range - mid >= 0 and self.ranges[max_range - mid + 1][0] > right:
+                max_range -= mid 
+            mid //= 2 
+
+        return min_range, max_range
+    
+    # to add new range
+    def add_range(self, left, right):
+        # check if list empty or new range completely before or after existing ranges
+        if not self.ranges or self.ranges[-1][1] < left:
+            # if true, append or insert new range accordingly
+            self.ranges.append((left, right))
+    
+        # if new range does not overlap w first range, insert at beginnging
+        if self.ranges[0][0] > right:
+            self.ranges.insert(0, (left, right))
+            return 
+    
+        min_range, max_range = self.check_intervals(left, right)
+        
+        # merge new range w overlapping or touching ranges 
+        updated_left = min(self.ranges[min_range][0], left)
+        updated_right = max(self.ranges[max_range][1], right)
+        
+        self.ranges[min_range: max_range + 1] = [(updated_left, updated_right)]
+
+    # to search for range 
+    def query_range(self, left, right):
+        if not self.ranges:
+            return False
+        
+        # find overlapping ranges, verify if queried range fully contained within found range
+        min_range, max_range = self.check_intervals(left, right)
+        
+        # return result 
+        return self.ranges[min_range][0] <= left and right < self.ranges[min_range][1]
+    
+    # to remove a range
+    def remove_range(self, left, right):
+        # check if list empty or range to be removed outside of existing ranges
+        if not self.ranges or self.ranges[0][0] > right or self.ranges[-1][1] < left:
+            return
+        
+        min_range, max_range = self.check_intervals(left, right)
+        updated_ranges = []
+        k = min_range
+        
+        while k <= max_range:
+            # add part of current range that is before interval to be removed 
+            if self.ranges[k][0] < left:
+                updated_ranges.append((self.ranges[k][0], left))
+                
+            # add part of current range that is after interval to be removed
+            if self.ranges[k][1] > right:
+                updated_ranges.append((right, self.ranges[k][1]))
+            k += 1
+        
+        # replace overlapping ranges with new ranges
+        self.ranges[min_range: max_range + 1] = updated_ranges
+        
+'''
+statement: design a data structure that takes in an array of strings and efficiently computes 
+the shortest distance between any two different strings in the array, implement the WordDistance class:
+
+    WordDistance(String[] words_dict): Iinitializes the object with an array of strings
+    int shortest(String word1, String word2): returns the shortest distance between word1 
+    and word2 in the array of strings
+'''
+
+from collections import defaultdict
+
+class WordDistance(object):
+    
+    # create dictionary to map words to their indexes in input array
+    # time and space O(n) where n = number of words in input list 
+    def __init__(self, words_dict):
+        # initialize dictionary to map each word to its list of indices 
+        self.word_indices = defaultdict(list)
+        
+        # populate dictionary by iterating through input array and recording word positions 
+        # build dictionary mapping each word to list of its indices in words dict 
+        for index, word in enumerate(words_dict):
+            self.word_indices[word].append(index)    
+
+    # time O(m + n) where m and n are lengths of index lists for query words, space O(1) 
+    def shortest(self, word1, word2):
+        # retrieve index lists for 2 words in shortest distance query 
+        indices1, indices2 = self.word_indices[word1], self.word_indices[word2]
+        
+        # use 2 pointers to compare positions of words
+        i = 0
+        j = 0 
+        min_distance = float('inf')
+        
+        # iterate through both lists of indices to find minimum distance 
+        while i < len(indices1) and j < len(indices2):
+            # update minimum distance if smaller one found
+            min_distance = min(min_distance, abs(indices1[i] - indices2[j]))
+            
+            # move pointer with smaller index to continue finding closer word pairs until traversal is complete 
+            if indices1[i] < indices2[j]:
+                i += 1
+            else: 
+                j += 1 
+
+        return min_distance
+    
+'''
+statement: design a MyHashSet class without using any built-in hash table libraries and implement 
+the following methods in it:
+
+    void add(key): inserts the value key into the HashSet
+    bool contains(key): returns TRUE if the key exists in the HashSet, FALSE otherwise
+    void remove(key): removes the value key if it exists in the HashSet
+    
+designing hash set involves addressing 2 main challenges 
+- hash function: maps given key to index in storage space, takes integer key and returns its remainder when 
+  divided by predefined number, good hash function ensures that keys are evenly distributed across storage
+  space, preventing clustering of keys in certain locations, even distribution helps maintain efficient 
+  access to stored values 
+- collision handling: collisions occur when 2 different keys map to same index, handle collisions via 
+  open addressing, 2 choice hashing or separate chaining (each index of storage space or bucket contains 
+  BST to store multiple values)
+  
+time O(log(n/k)), space O(N + K) where N = number of elements stored, K = size of bucket 
+'''
+class TreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+class BinarySearchTree:
+    def __init__(self):
+        self.root = None
+    
+    def find(self, node: TreeNode, value: int) -> TreeNode:
+        if node is None or value == node.value:
+            return node 
+        
+        return self.find(node.left, value) if value < node.value else self.find(node.right, value)
+    
+    def insert(self, node: TreeNode, value: int) -> TreeNode:
+        if not node: 
+            return TreeNode(value)
+        
+        if value > node.value:
+            node.right = self.insert(node.right, value)
+        elif value == node.value:
+            return node
+        else: 
+            node.left = self.insert(node.left, value)
+        
+        return node 
+    
+    def find_successor(self, node):
+        node = node.right 
+        while node.left:
+            node = node.left 
+        return node.value 
+    
+    def find_predecessor(self, node):
+        node = node.left
+        while node.right:
+            node = node.right
+        return node.value 
+    
+    def remove(self, node: TreeNode, key: int) -> TreeNode:
+        if not node:
+            return None
+        
+        if key > node.value: 
+            node.right = self.remove(node.right, key)
+        elif key < node.value:
+            node.left = self.remove(node.left, key)
+        else: 
+            if not (node.left or node.right):
+                node = None
+            elif node.right:
+                node.value = self.find_successor(node)
+                node.right = self.remove(node.right, node.value)
+            else:
+                node.value = self.find_predecessor(node)
+                node.left = self.remove(node.left, node.value)
+        
+        return node
+
+# each bucket uses Binary Search Tree to manage elements within bucket 
+class Bucket:
+    # initialize empty BST when creating new bucket to store keys that hash to this specific bucket 
+    def __init__(self):
+        self.bst = BinarySearchTree()
+
+    # add value to bucket 
+    def add(self, value):
+        self.bst.root = self.bst.insert(self.bst.root, value)
+
+    # remove value from bucket
+    def remove(self, value):
+        self.bst.root = self.bst.remove(self.bst.root, value)
+
+    # check if bucket contains value 
+    def contains(self, value):
+        return self.bst.find(self.bst.root, value) is not None
+
+# implement hash set using separate chaining with buckets containing Binary Search Trees (BST)
+class MyHashSet:
+    # define size of hash table (key_range) and initialize on array of buckets 
+    def __init__(self):
+        # choose prime number for key space size (preferably large one)
+        self.key_range = 769
+        # create array and initialize with empty buckets equal to key space size 
+        self.bucket_array = [Bucket() for i in range(self.key_range)]
+
+    # hash function to map key to specific bucket index 
+    def hash(self, key) -> int:
+        # generate hash key by taking modulus of input key with key space size 
+        return key % self.key_range
+    
+    # add key to hash set 
+    def add(self, key):
+        bucket_index = self.hash(key)
+        self.bucket_array[bucket_index].add(key)
+
+    # remove key from hash set
+    def remove(self, key):
+        bucket_index = self.hash(key)
+        self.bucket_array[bucket_index].remove(key)
+
+    # check if hash set contains key 
+    def contains(self, key):
+        bucket_index = self.hash(key)
+        return self.bucket_array[bucket_index].contains(key)
+
+'''
+statement: design a custom stack class, Max Stack, that supports the basic stack operations 
+and can find the maximum element present in the stack, implement the following methods for Max Stack:
+
+    constructor: initializes the Max Stack object
+    void Push(int x): pushes the provided element, x, onto the stack
+    int Pop( ): removes and returns the element on the top of the stack
+    int Top( ): retrieves the most recently added element on the top of the stack without removing it
+    int peekMax( ): retrieves the maximum element in the stack without removing it
+    int popMax( ): This retrieves the maximum element in the stack and removes it, if there is more 
+        than one maximum element, remove the most recently added one (the topmost)
+
+lazy update: updates to data structures deferred or delayed until needed, instead of applying changes 
+immediately, system records update operations and only processes them when necessary 
+'''
+import heapq
+
+class MaxStack:
+    def __init__(self):
+        # initialize an empty stack to maintain order elements
+        self.stack = []
+        # utilize secondary data structure (max-heap) to efficiently track max value
+        self.max_heap = []
+        self.id_num = 0 # declare an ID tracker
+        self.popped = set()  # use a Set to track popped elements by their IDs
+
+    # for each push, add new value to stack and max heap that tracks max value, time O(logn)
+    def push(self, x):
+        # push the value and its unique ID to both the stack and max-heap
+        self.stack.append((x, self.id_num))
+        heapq.heappush(self.max_heap, (-x, -self.id_num))  # use negative for max-heap
+        self.id_num += 1  # increment the ID for the next element
+
+    # for each pop, remove and return top element of stack, time O(logn)
+    def pop(self):
+        # ensure we skip over any elements already popped
+        # store values with negative signs to facilitate max heap behavior using Python min heap
+        while self.stack and self.stack[-1][1] in self.popped:
+            self.stack.pop()
+        # pop the top element and mark its ID as popped
+        num, idx = self.stack.pop()
+        self.popped.add(idx)
+        return num  # return the value of the popped element
+
+    # for each top, return top element fo stack without removing it, time O(1) 
+    def top(self):
+        # skip over already popped elements to find the top of the stack
+        while self.stack and self.stack[-1][1] in self.popped:
+            self.stack.pop()
+        return self.stack[-1][0] # return the value of the top element
+
+    # for each peek max, return top element of max tracking structure without removing it, time O(nlogn) 
+    def peekMax(self):
+        # skip over already popped elements to find the current max in the heap
+        while self.max_heap and -self.max_heap[0][1] in self.popped:
+            heapq.heappop(self.max_heap)
+        return -self.max_heap[0][0]  # return the max value
+
+    # for each pop max, remove and return max calue from max tracking structure, time O(logn)
+    def popMax(self): # using stack and heap combo 
+        # skip over already popped elements to remove the max value from the heap
+        while self.max_heap and -self.max_heap[0][1] in self.popped:
+            heapq.heappop(self.max_heap)
+        # pop the max element and mark its ID as popped
+        num, idx = heapq.heappop(self.max_heap)
+        self.popped.add(-idx)
+        return -num  # return the max value
+
+# Driver code
+def main():
+    inputs = [
+        [[4, 1, "", ""], ["push", "push", "top", "peekMax"]],
+        [[5, 1, 5, "",""], ["push", "push", "push", "pop", "popMax"]],
+        [[7, 2, 7, "", "", "", "", "", ""], ["push", "push", "push", "top", "popMax", "top", "peekMax", "pop", "top"]],
+        [[-9, -3, -1, "", "", "", ""], ["push", "push", "push", "pop", "top", "popMax", "peekMax"]],
+        [[10, 6, "", ""], ["push", "push", "popMax", "top"]],
+        [[1, -2, 3, "", "", "", "", ""], ["push", "push", "push", "peekMax", "top", "pop", "peekMax", "popMax"]],
+        [[14, "", "", 66, ""], ["push", "top", "peekMax", "push", "pop"]]]
+    
+    for i in range(len(inputs)):
+        print(i + 1, ".\t Starting operations:", sep="")
+
+        # initialize a queue
+        max_stack_obj = MaxStack()
+
+        # loop over all the commands
+        for j in range(len(inputs[i][1])):
+            if inputs[i][1][j] == "push":
+                inputstr = inputs[i][1][j] + \
+                    "("+str(inputs[i][0][j])+")"
+                print("\t\t", inputstr, sep="")
+                max_stack_obj.push(inputs[i][0][j])
+            if inputs[i][1][j] == "pop":
+                inputstr = inputs[i][1][j] + \
+                    "("+str(inputs[i][0][j])+")"
+                print("\t\t", inputstr, "   returns ",
+                      max_stack_obj.pop(), sep="")
+            if inputs[i][1][j] == "top":
+                inputstr = inputs[i][1][j] + \
+                    "("+str(inputs[i][0][j])+")"
+                print("\t\t", inputstr, "  returns ",
+                      max_stack_obj.top(), sep="")
+
+            if inputs[i][1][j] == "peekMax":
+                inputstr = inputs[i][1][j] + \
+                    "("+str(inputs[i][0][j])+")"
+                print("\t\t", inputstr, "  returns ",
+                      max_stack_obj.peekMax(), sep="")
+            
+            if inputs[i][1][j] == "popMax":
+                inputstr = inputs[i][1][j] + \
+                    "("+str(inputs[i][0][j])+")"
+                print("\t\t", inputstr, "  returns ",
+                      max_stack_obj.popMax(), sep="")
+
+        print("-" * 100)
+
+if __name__ == "__main__":
+    main()
