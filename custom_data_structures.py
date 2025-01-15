@@ -813,7 +813,9 @@ and can find the maximum element present in the stack, implement the following m
         than one maximum element, remove the most recently added one (the topmost)
 
 lazy update: updates to data structures deferred or delayed until needed, instead of applying changes 
-immediately, system records update operations and only processes them when necessary 
+immediately, system records update operations and only processes them when necessary
+
+space O(n)
 '''
 import heapq
 
@@ -868,54 +870,322 @@ class MaxStack:
         self.popped.add(-idx)
         return -num  # return the max value
 
-# Driver code
-def main():
-    inputs = [
-        [[4, 1, "", ""], ["push", "push", "top", "peekMax"]],
-        [[5, 1, 5, "",""], ["push", "push", "push", "pop", "popMax"]],
-        [[7, 2, 7, "", "", "", "", "", ""], ["push", "push", "push", "top", "popMax", "top", "peekMax", "pop", "top"]],
-        [[-9, -3, -1, "", "", "", ""], ["push", "push", "push", "pop", "top", "popMax", "peekMax"]],
-        [[10, 6, "", ""], ["push", "push", "popMax", "top"]],
-        [[1, -2, 3, "", "", "", "", ""], ["push", "push", "push", "peekMax", "top", "pop", "peekMax", "popMax"]],
-        [[14, "", "", 66, ""], ["push", "top", "peekMax", "push", "pop"]]]
+'''
+statement: given a stream of integers and a window size, calculate the moving average 
+of all integers in the sliding window, implement a class called MovingAverage that has the following methods:
+
+constructor (int size): initializes the object with the specified window size
+double next (int val): takes an integer value as input and returns the moving 
+average of the last size values from the stream
+
+time O(1), space O(size)
+'''
+from collections import deque
+
+class MovingAverage:
+
+    def __init__(self, size):
+        # declare window size variable, max number of recent values for calculating moving average 
+        self.size = size
+        # create empty queue 
+        self.queue = deque() # stores most recent values up to window size, adds to end, removes oldest front 
+        # initialize window sum to 0
+        self.window_sum = 0 # allows moving average calculation efficiency w/ out having to sum repeatedly
+
+    def next(self, val):
+        # append new value to queue and add it to the window sum 
+        self.queue.append(val)
+        self.window_sum += val # extends currend sliding window to include new value 
     
-    for i in range(len(inputs)):
-        print(i + 1, ".\t Starting operations:", sep="")
+        # if queue length exceeds window size, remove oldest value from queue 
+        if len(self.queue) > self.size:
+            # subtract removed value from window sum to maintain correct sum for current window 
+            self.window_sum -= self.queue.popleft()
+    
+        # return window sum divided by current queue length to obtain moving average 
+        return float(self.window_sum) / len(self.queue)
 
-        # initialize a queue
-        max_stack_obj = MaxStack()
+'''
+statement: design a data structure that takes in a stream of numbers and can check 
+if any two numbers add up to a specific value, implement the TwoSum class with the 
+following constructor and methods:
 
-        # loop over all the commands
-        for j in range(len(inputs[i][1])):
-            if inputs[i][1][j] == "push":
-                inputstr = inputs[i][1][j] + \
-                    "("+str(inputs[i][0][j])+")"
-                print("\t\t", inputstr, sep="")
-                max_stack_obj.push(inputs[i][0][j])
-            if inputs[i][1][j] == "pop":
-                inputstr = inputs[i][1][j] + \
-                    "("+str(inputs[i][0][j])+")"
-                print("\t\t", inputstr, "   returns ",
-                      max_stack_obj.pop(), sep="")
-            if inputs[i][1][j] == "top":
-                inputstr = inputs[i][1][j] + \
-                    "("+str(inputs[i][0][j])+")"
-                print("\t\t", inputstr, "  returns ",
-                      max_stack_obj.top(), sep="")
+    constructor: sets up the TwoSum object with an empty list at the start
+    void add(int number): adds a new number to the list
+    boolean find(int value): returns TRUE if any two numbers in the list 
+                            add up to the given value, if not, it returns FALSE
+                            
+time and space O(N) where N = unique numbers in array 
+'''
 
-            if inputs[i][1][j] == "peekMax":
-                inputstr = inputs[i][1][j] + \
-                    "("+str(inputs[i][0][j])+")"
-                print("\t\t", inputstr, "  returns ",
-                      max_stack_obj.peekMax(), sep="")
+class TwoSum:
+    def __init__(self):
+        # initialize hash map 
+        self.nums = {}
+              
+    # method to add a number to dictionary
+    def add(self, number):
+        # for each number to be added, increment value of that number by 1 if already in hash map 
+        if number in self.nums:
+            self.nums[number] += 1 
+        # if number not already in hashmap, add that number as key and 1 as value in hash map
+        else: 
+            self.nums[number] = 1
+
+    # method to find the pair of a target number
+    def find(self, value):
+        # iterate through numbers in dictionary 
+        for num in self.nums:
+            # calculate complement for each by subtracting target number by key
+            complement = value - num
+            # check if complement exists in dictionary 
+            if complement in self.nums:
+                # if complement equal to key/same as num, check if value of key greater than 1 (1+ occurrence)
+                if complement != num or self.nums[num] > 1:
+                    # if length of hash map and set is the same, return True (frequencies of each element unique)
+                    return True 
+        return False 
+    
+'''
+statement: you are given an integer array, nums, and you need to handle multiple queries of the following type:
+
+    query: calculate the sum of elements in nums between indices i and j (inclusive), where i <= j
+
+implement the NumArray class to support the following operations efficiently:
+
+    constructor: initializes the object with the integer array nums
+
+    sumRange(i, j): returns the sum of the elements of nums between indices i and j (inclusive), i.e., 
+    the sum of nums[i] + nums[i + 1] + ... + nums[j]
+
+time O(1), space O(n)
+'''
+
+class NumArray:
+    
+    def __init__(self, nums):
+        # create sum array of size len(nums) + 1 filled with zeros, initialize w extra space to handle prefix sums easily
+        self.sum = [0] * (len(nums) + 1)
+        
+        # iterate through nums, computing prefix sum array and updating sum[i + 1] as cumulative sum up to index 1  
+        for i in range(len(nums)):
+            # store cumulative sum such that each index represents sum of elements from start to that index 
+            self.sum[i + 1] = self.sum[i] + nums[i]
+
+    # for sum_range(i, j), calculate sum as sum[j + 1] - sum[i]
+    def sum_range(self, left, right):
+        # return sum of elements between indices i and j inclusive 
+        return self.sum[right + 1] - self.sum[left] # result of subtraction as sum of elements from i to j 
+
+'''
+statement: design and implement a data structure for a Least Frequently Used (LFU) cache, implement 
+the LFUCache class, here is how it should be implemented:
+
+    LFUCache(capacity): initializes the object with the capacity of the data structure
+    Get(key): gets the value of the key if it exists in the cache, otherwise, it returns -1
+    Put(key, value): updates the value of the key if present, or inserts the key if not present,
+                     when the cache reaches its capacity, it should invalidate and remove the 
+                     least frequently used key before inserting a new item, for this problem, 
+                     when there's a tie, that is, two or more keys have the same frequency, the 
+                     least recently used key is invalidated
+
+to determine the least frequently used key, a UseCounter is maintained for each key in the cache,
+key with the smallest UseCounter is the least frequently used key, when a key is first inserted into 
+the cache, its UseCounter is set to 1 (due to the Put() operation), UseCounter for a key in the cache 
+is incremented and either a Get() or Put() operation is called on it
+
+Get and Put functions should both run with an average time complexity of O(1)
+
+space O(capacity)
+'''
+class Node:
+    def __init__(self, key, value):
+        self.key = key 
+        self.value = value
+        self.use_counter = 0 
+        self.next = None
+        self.previous = None
+        
+    
+class DoubleyLinkedList:
+    def __init__(self):
+        # default constructor to create doubly linked list type object 
+        self.head = None
+        self.tail = None 
+    
+    # inserts node at tail of doubly linked list 
+    def insert_at_tail(self, node):
+        if self.tail is None:
+            self.head = self.tail = node
+        else:
+            self.tail.next = node
+            node.previous = self.tail
+            self.tail = node 
+    
+    # removes head node from doubly linked list, returns its key 
+    def remove_head_node(self):
+        key = self.head.key 
+        
+        temp = self.head.next 
+        self.head = temp
+        if self.head is None: 
+            self.tail = None
+        else:
+            self.head.previous = None
+        
+        return key 
+    
+    # detaches given node from doubly linked list 
+    def detach_node(self, node):
+        if self.head == node and self.tail == node:
+            self.head = self.tail = None
+            return True
+        elif self.head == node:
+            self.head = self.head.next 
+            self.head.previous = None
+        elif self.tail == node:
+            self.tail = self.tail.previous 
+            self.tail.next = None 
+        else:
+            node.previous.next = node.next 
+            node.next.previous = node.previous 
+        
+        node.previous = node.next = None 
+        return False
+        
+class Node:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.use_counter = 0  # Tracks how many times the node has been accessed
+        self.next = None
+        self.previous = None
+        
+    
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None  # Start of the list (least frequently used)
+        self.tail = None  # End of the list (most recently used)
+    
+    def insert_at_tail(self, node):
+        if self.tail is None:
+            self.head = self.tail = node
+        else:
+            self.tail.next = node
+            node.previous = self.tail
+            self.tail = node
+    
+    def remove_head_node(self):
+        if not self.head:
+            return None
+        
+        key = self.head.key
+        temp = self.head.next
+        self.head = temp
+        if self.head is None:
+            self.tail = None
+        else:
+            self.head.previous = None
+        return key
+    
+    def detach_node(self, node):
+        if self.head == node and self.tail == node:
+            self.head = self.tail = None
+            return True
+        elif self.head == node:
+            self.head = self.head.next
+            self.head.previous = None
+        elif self.tail == node:
+            self.tail = self.tail.previous
+            self.tail.next = None
+        else:
+            node.previous.next = node.next
+            node.next.previous = node.previous
+        
+        node.previous = node.next = None
+        return False
+
+from collections import defaultdict, OrderedDict
+
+class LFUCache:
+    def __init__(self, capacity: int):
+        '''
+        initializes LFU cache with given capacity 
+        '''
+        self.capacity = capacity
+        self.key_to_value = {} # map key to value 
+        self.key_to_frequency = {} # map key to frequency 
+        self.frequency_to_keys = defaultdict(OrderedDict) # map frequency to ordered dictionary of keys 
+        self.min_frequency = 0  # current minimum frequency in use/tracking min frequency in cache 
+    
+    def update_frequency(self, key: int):
+        '''
+        helper function to update use counter or frequency of key:
+        1. locate frequency of key 
+        2. remove key from its current frequency bucket 
+        3. if this freq bucket empty and is current min freq, increment min freq 
+        4. add key to next frequency bucket (increment frequency by 1)
+        '''
+        frequency = self.key_to_frequency[key]
+        
+        # remove key from current frequency bucket 
+        del self.frequency_to_keys[frequency][key]
+        
+        if not self.frequency_to_keys[frequency]:
+            del self.frequency_to_keys[frequency]
+            if self.min_frequency == frequency:
+                self.min_frequency += 1
+    
+        # move key to next frequency bucket 
+        self.key_to_frequency[key] = frequency + 1
+        self.frequency_to_keys[frequency + 1][key] = None
+    
+    # time O(1)
+    def get(self, key: int) -> int:
+        '''
+        retrieves value of given key from cache 
+        1. if key not in cache, return -1
+        2. if key present: update frequency of key and return corresponding value 
+        '''
+        if key not in self.key_to_value:
+            return -1  # return -1 if the key does not exist
+        
+        # update frequency of key
+        self.update_frequency(key)
+        return self.key_to_value[key]
+    
+    # if key present, update it, otherwise insert key
+    # update use counter for key, time O(1)
+    def put(self, key: int, value: int) -> None:
+        '''
+        adds key/value pair to cache or updates value of existing key
+        1. if cache capacity 0, do nothing 
+        2. if key exists in cache, update its value and increment its frequency 
+        3. if key does not exist: 
+            - if cache full, evict least frequently use key
+            (with tie-breaking for least recently used)
+            - insert new key with frequency 1 
+            - reset minimum frequency to 1 
+        '''
+        if self.capacity == 0:
+            return
+        
+        if key in self.key_to_value:
+            # update the value of the existing key and its frequency
+            self.key_to_value[key] = value 
+            self.update_frequency(key)    
+        else:
+            # evict least frequently used key if cache full 
+            if len(self.key_to_value) == self.capacity:
+                # find least frequently used key in minimum frequency bucket 
+                evict_key, _ = self.frequency_to_keys[self.min_frequency].popitem(last=False)
+                # remove evicted key from all maps 
+                del self.key_to_value[evict_key]
+                del self.key_to_frequency[evict_key]
             
-            if inputs[i][1][j] == "popMax":
-                inputstr = inputs[i][1][j] + \
-                    "("+str(inputs[i][0][j])+")"
-                print("\t\t", inputstr, "  returns ",
-                      max_stack_obj.popMax(), sep="")
-
-        print("-" * 100)
-
-if __name__ == "__main__":
-    main()
+            # insert new key with frequency 1 
+            self.key_to_value[key] = value
+            self.key_to_frequency[key] = 1
+            self.frequency_to_keys[1][key] = None 
+            # reset minimum frequency to 1 
+            self.min_frequency = 1
