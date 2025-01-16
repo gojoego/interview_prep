@@ -140,3 +140,63 @@ def naive_find_bitwise_complement(num: int) -> int:
     complement = int(complement_binary, 2)
     
     return complement
+
+'''
+statement: given that an image is represented by an (n x n) matrix containing 0s and 1s,
+flip and invert the image, and return the resultant image
+
+horizontally flipping an image means that the mirror image of the matrix should be returned, 
+flipping [1, 0, 0] horizontally results in [0, 0, 1]
+
+inverting an image means that every 0 is replaced by 1 and every 1 is replaced by 0, inverting 
+[0,1,1] results in [1,0,0]
+
+time O(n^2), space O(1)
+'''
+
+def flip_and_invert_image(image):
+    # get number of rows in image 
+    row_count = len(image)
+    
+    # compute index of middle element in each row / calculate middle index of rows 
+    mid = (row_count + 1) // 2 
+    
+    # iterate over first half of each row 
+    for row in image:
+        # iterate over first half of each row 
+        for i in range(mid):
+            # compute bitwise XOR of current element with 1, which will invert element's value 
+            temp = row[i] ^ 1 # store inverted value of current element in temp variable
+            
+            # update/swap current element with inverted value of corresponding element from second half 
+            row[i] = row[len(row) - 1 - i] ^ 1
+            # element at same distance from end of row as current element is from beginning of row after 
+            # performing same XOR operation on second element as well 
+            
+            # update corresponding element from second half with inverted value stored in temp variable 
+            row[len(row) - 1 - i] = temp 
+
+    # after iterate over all rows, return resultant image 
+    return image
+
+# solves problem by separately flipping and inverting image 
+def naive_flip_invert_image(image):
+    # step 1: flip image horizontally
+    flipped_image = flip_horizontal(image)
+    
+    # step 2: invert image 
+    inverted_image = invert_image(flipped_image)
+    return inverted_image
+
+# flips image horizontally by reversing each row 
+def flip_horizontal(image):
+    for row in image:
+        row.reverse()
+    return image
+
+# inverts image by replacing 1s with 0s and 0s with 1s 
+def invert_image(image):
+    for row in image:
+        for i in range(len(row)):
+            row[i] = row[i] ^ 1
+    return image
