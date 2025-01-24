@@ -367,3 +367,69 @@ def find_next_permutation(digits):
     digits[i + 1:] = reversed(digits[i + 1]) 
     
     return True
+
+'''
+statement: you are given two nodes, p and q - the task is to return their 
+lowest common ancestor (LCA), both nodes have a reference to their parent node,
+the tree's root is not provided; you must use the parent pointers to find the 
+nodes' common ancestor
+
+note: the lowest common ancestor of two nodes, p and q, is the lowest node in the 
+binary tree, with both p and q as descendants
+
+in a tree, a descendant of a node is any node reachable by following edges downward 
+from that node, including the node itself
+
+algorithm: why reset pointers? 
+1. balancing the distance 
+2. ensuring the nodes meet 
+
+time O(h) where h = height of tree, space O(1)
+'''
+def lowest_common_ancestor(p, q):
+    # initialize 2 points, one on each given node
+    pointer1 = p
+    pointer2 = q 
+    
+    # move both pointers upward along the tree using parent node, 1 step at a time
+    while pointer1 != pointer2: # traverse until they meet 
+        
+        # if pointer reaches top of tree (NULL), move it to starting position of other node
+        if pointer1.parent: # move pointer 1 to parent node or switch to other node if root reached 
+            pointer1 = pointer1.parent 
+        else: 
+            pointer1 = q 
+        
+        # move pointer 2 to parent node or switch to other node if root reached 
+        if pointer2.parent:
+            pointer2 = pointer2.parent
+        else: 
+            pointer2 = p 
+            
+    # continue moving until these pointers meet, meeting point is LCA of nodes 
+    return pointer1 # you can return either pointer since they are the same now 
+
+'''
+statement: write a function that takes a string as input and checks whether it can be a 
+valid palindrome by removing at most one character from it
+
+'''
+def is_palindrome(string):
+    # initialize 2 pointers at opposite ends of string 
+    left = 0
+    right = len(string) - 1 
+    
+    while left < right: 
+        # if values at left and right indexes match, move both toward middle until meeting
+        if string[left] == string[right]:
+            left += 1
+            right -= 1
+        # mismatch -> skip element from left/right and check rest of string for palindrome
+        else: 
+            skip_left = string[left + 1:right + 1]
+            skip_right = string[left:right]
+            # check for palindromes on either end
+            return skip_left == skip_left[::-1] or skip_right == skip_right[::-1]
+            
+    # no mismatches or only 1 mismatch 
+    return True 

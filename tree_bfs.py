@@ -1,5 +1,4 @@
 '''
-
 tree breadth-first search 
 
 tree
@@ -377,26 +376,6 @@ def naive_populate_next_pointers(root):
     
     return root
 
-def display_tree(root, level=0, prefix="Root: "):
-    if not root:
-        print("\t" * level + prefix + "None")
-        return
-    
-    # Print the current node
-    print("\t" * level + prefix + str(root.data))
-    
-    # Recursively print the left and right children, increasing the level (indentation)
-    if root.left or root.right:
-        if root.left:
-            display_tree(root.left, level + 1, "L--- ")
-        else:
-            print("\t" * (level + 1) + "L--- None")
-        
-        if root.right:
-            display_tree(root.right, level + 1, "R--- ")
-        else:
-            print("\t" * (level + 1) + "R--- None")
-
 from collections import defaultdict
 
 # find vertical order of binary tree when root given, values of nodes from top to bottom in each column ->
@@ -611,3 +590,95 @@ def connect_all_siblings(root):
     
     # return root node of tree 
     return root
+
+'''
+statement: given the root of a binary search tree and an integer k, determine 
+whether there are two elements in the BST whose sum equals k, return TRUE if 
+such elements exist or FALSE otherwise
+
+time and space O(n) where n = number of nodes in BST 
+'''
+from collections import deque
+
+def find_target(root, k):
+    # return False if tree empty 
+    if not root:
+        return False
+    
+    # define set to store visited node values 
+    seen = set()
+    
+    # queue for level-order traversal of BST
+    queue = deque()
+    queue.append(root)
+    
+    # perform level-order traversal of BST 
+    while queue:
+        current = queue.popleft()
+        
+        # for each node, return True if k and current node's value difference exists in seen yet set
+        if current:
+            # check if complement of current node's value exists in set
+            if (k - current.data) in seen:
+                return True 
+    
+            # add current node's value to set 
+            seen.add(current.data)
+        
+            # add right/left children of current node to queue 
+            queue.append(current.left)
+            queue.append(current.right)
+
+    # if no 2 nodes with required sum found, return False 
+    return False
+
+
+'''
+statement: we are given an n x n binary matrix grid containing 0s and 1s, each cell in the grid 
+represents either land or water, a cell with a value of 1 represents land, while a cell 
+with a value of 0 represents water, a group of adjacent cells with a value of 1 constitutes 
+an island, two cells are considered adjacent if one is above, below, to the left, or to the 
+right of the other, our task is to return the smallest number of 0s we must flip to connect 
+the two islands
+
+note: we may assume all four edges of the grid are surrounded by water
+
+time and space O(n ^ 2)
+'''
+
+from collections import deque
+
+def shortest_bridge(grid):
+    # dimensions, rows and columns
+    rows = len(grid)
+    columns = len()
+    
+    # variable to track how many flips from 0 to 1 done so far 
+    flips = 0 
+    
+    # return 0 for empty grid 
+    if not grid:
+        return 0
+    
+    # check if 1 or 0 
+    
+    # visited set 
+    visited = set()
+       
+    # queue for traversal
+    queue = deque()
+    queue.append(grid[0])
+    
+    # while queue is not empty loop
+    while queue:
+        # current variable initialized to popleft() value from queue 
+        current = queue.popleft()
+        
+        # add current node value to visited set 
+        visited.add(current.data)
+        
+        # add right and left children of current node to queue 
+        queue.append(current.right)
+        queue.append(current.left)
+        
+    return flips 
