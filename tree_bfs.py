@@ -651,34 +651,54 @@ from collections import deque
 def shortest_bridge(grid):
     # dimensions, rows and columns
     rows = len(grid)
-    columns = len()
+    columns = len(grid[0])
     
+    queue = deque()
+    
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    
+    start_x, start_y = find_first_land(grid)
+    
+    mark_first_island(grid, start_x, start_y, queue, directions)
+    
+    return expand_island(grid, queue, directions, rows, columns)
+
+def find_first_land(grid):
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == 1:
+                return i, j 
+    return -1, -1
+
+def mark_first_island(grid, x, y, queue, directions):
+    bfs_queue = deque([(x, y)])
+    grid[x][y] = 2
+    queue.append((x, y))
+    
+    while bfs_queue:
+        cx, cy = bfs_queue.popleft()
+        for dx, dy in directions:
+            nx, ny = cx + dx, cy + dy 
+            if 0 <= nx < len(grid) and 0 <= ny < len(grid[0]) and grid[nx][ny] == 1:
+                grid[nx][ny] = 2 
+                bfs_queue.append((nx, ny))
+                queue.append((nx, ny))
+
+def expand_island(grid, queue, directions, rows, columns):
     # variable to track how many flips from 0 to 1 done so far 
     flips = 0 
     
-    # return 0 for empty grid 
-    if not grid:
-        return 0
-    
-    # check if 1 or 0 
-    
-    # visited set 
-    visited = set()
-       
-    # queue for traversal
-    queue = deque()
-    queue.append(grid[0])
-    
-    # while queue is not empty loop
     while queue:
-        # current variable initialized to popleft() value from queue 
-        current = queue.popleft()
+        for _ in range(len(queue)):
+            x, y = queue.popleft()
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy 
+                if 0 <= nx < rows and 0 <= ny < columns:
+                    if grid[nx][ny] == 1:
+                        return flips
+                    if grid[nx][ny] == 0:
+                        grid[nx][ny] = 2
+                        queue.append((nx, ny))
+        flips += 1 
         
-        # add current node value to visited set 
-        visited.add(current.data)
-        
-        # add right and left children of current node to queue 
-        queue.append(current.right)
-        queue.append(current.left)
-        
-    return flips 
+    return flips
