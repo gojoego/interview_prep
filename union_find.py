@@ -821,22 +821,9 @@ def evaluate_equations(equations, values, queries):
     
     return results
 
- #additionally set up dictionary that stores 
-    # variables with respective weights and groups they belong to 
-    # weights of every variable initialized 1
-    
-    
-    
+'''
+statement: for a given integer, n, and an array, edges, return the number of connected components 
+in a graph containing n nodes
 
-    
-    # if either of the query variables do not appear in input equations, return -1.0
-    
-    # otherwise, if both variables appear in input equation, use find(variable) function to get group 
-    # and weight of each item, find(variable) function will update weights in case of any discrepancies 
-    
-    # if both variables belong to same group, chain of division exists between them and we can 
-    # return division of their weights as result 
-    
-    # otherwise, if 2 variables don't belong to same group, they aren't connected by chain 
-    # of divisions and we return -1.0 as result 
-    return 
+note: the array edges[i] = [x, y] indicates that there's an edge between x and y in the graph
+'''
