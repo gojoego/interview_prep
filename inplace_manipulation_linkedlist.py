@@ -237,6 +237,10 @@ def reverse_linked_list(head, k):
 statement: given a singly linked list with n nodes and two positions, left and right, the 
 objective is to reverse the nodes of the list from left to right, return the modified list
 
+algorithm: directly adjusting node pointers to ensure efficient in-place manipulation without
+using additional memory, use dummy node to simplify edge cases (i.e. if sublist starts at first
+node), link dummy to head, iterate to node before left and mark as previous node, move 
+
 time O(n) where n = number of nodes in list, space O(1)
 '''
 def reverse_between(head, left, right):
@@ -266,36 +270,232 @@ def reverse_between(head, left, right):
     # return modified list / updated head of linked list 
     return dummy.next 
 
-# Driver Code
-def main():
-    input_list = [
-        [1, 2, 3, 4, 5, 6, 7],
-        [6, 9, 3, 10, 7, 4, 6],
-        [6, 9, 3, 4],
-        [6, 2, 3, 6, 9],
-        [6, 2]
-    ]
-    left = [1, 3, 2, 1, 1]
-    right = [5, 6, 4, 3, 2]
+'''
+naive approach for reverse between function: 2 pointers initialized to head 
+in order to track sublist and reverse it 
 
-    for i in range(len(input_list)):
+time O(n ^ 2), space O(1)
+'''
+def naive_reverse_between(head, left, right):
+    if not head or left == right:
+        return head 
+    
+    left_pointer = head 
+    for _ in range(left - 1):
+        left_pointer = left_pointer.next 
+        
+    for _ in range((right - left + 1) // 2):
+        right_pointer = head 
+        for _ in range(right - 1):
+            right_pointer = right_pointer.next 
+    
+        left_pointer.data, right_pointer.data = right_pointer.data, left_pointer.data 
+        left_pointer = left_pointer.next 
+        right -= 1
+    
+    return head 
 
-        input_linked_list = LinkedList()
-        input_linked_list.create_linked_list(input_list[i])
+'''
+statement: given the head of a singly linked list, reorder the list as if it were 
+folded on itself - for example, if the list is represented as follows:
 
-        print(i + 1, ".\tOriginal linked list: ", end="")
-        print_list_with_forward_arrow(input_linked_list.head)
-        print("\n\tleft:", left[i], ", right:", right[i])
+L0 → L1 → L2 → … → Ln-2 → Ln-1 → Ln
 
-        if left[i] <= 0:
-            print("\n\tThe expected 'left' and 'right' to have \
-            value from 1 to length of the linked list only.")
-        else:
-            result = reverse_between(input_linked_list.head, left[i], right[i])
-            print("\n\tReversed linked list: ", end="")
-            print_list_with_forward_arrow(result)
-        print("\n", "-"*100, sep="")
+this is how you'll reorder it:
 
+L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …
 
-if __name__ == '__main__':
-    main()
+no need to modify the values in the list's nodes, only the links between nodes need to be changed
+
+algorithm: reorganize list in 3 steps, slow/fast pointers to reach middle node, 
+reverse second half of list, each node points to 1 before it, order of second half
+flipped, merge 2 halves from heads alternatively linking nodes by adjusting pointers, 
+each node in first half points to node in second, each node from second half 
+linked to subsequent node in first half 
+
+summary of algorithm:  
+    1. find middle node -> choose second if 2 
+    2. reverse second half of list 
+    3. merge both halves of linked list alternatively 
+    
+time O(n) where n = number of nodes in list, space O(1)
+'''
+def reorder_list(head):
+    if not head:
+        return head
+    
+    # find middle node, 2 middle nodes -> choose 2nd  
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next 
+        fast = fast.next.next  
+    
+    # reverse second half of linked list 
+    previous = None
+    current = slow 
+    while current:
+        current.next, previous, current = previous, current, current.next 
+        
+    # merge first and second half of linked list 
+    first = head
+    second = previous
+    
+    while second.next:
+        first.next, first = second, first.next 
+        second.next, second = first, second.next 
+        
+    return head 
+
+'''
+naive approach to reverse list: traverse list, 1st start from head using current pointer, 
+traverse list and add last node in front of current, move to next node, each node added
+current node move ahead, find last occurring nodes n times
+
+time O(n ^ 2), space O(1) 
+'''
+def naive_reorder_list(head):
+    if not head or not head.next:
+        return head
+    
+    current = head 
+    
+    while current and current.next: 
+        # find last node and its previous node 
+        previous = None
+        last = current
+        while last.next:
+            previous = last 
+            last = last.next 
+        
+        # move last node to be after current node 
+        if previous:
+            previous.next = None # disconnect last node from previous position 
+            last.next = current.next # point last node to next of current node 
+            current.next = last # insert last node after current node 
+        
+        # move current to next node in reordered list 
+        current = last.next 
+
+    return head 
+
+'''
+statement: given the linked list and an integer, k, return the head of the linked 
+list after swapping the values of the kth node from the beginning and the kth node 
+from the end of the linked list.
+
+note: we'll number the nodes of the linked list starting from 1 to n
+
+algorithm: find kth node from start and kth node from end, find 2 nodes using in-place manipulation 
+mthod, use 2 pointers to traverse list, swap values 
+    - 1 pass: enables swap without determining length, advancing 2 pointers maintaining k gap, both 
+      pointers start at head, current moves k, end starts moving from head, front pointer stores current 
+      position of current, traversal continued until current reaches end, ensures end points kth node 
+      from end, swap nodes pointed by front and end pointers 
+    - 3 pass: front/end pointers, 1st pass to find kth from start, 2nd to find length, 3rd to find end
+      by taking length - k and iterating to that node 
+    - 2 pass: find length and kth node from start in first pass 
+
+time O(n) where n = number of nodes in list, space O(1)
+'''
+def swap_nodes(head, k):
+    # initialize pointer current with head
+    current = head 
+    # variable count with 0 
+    count = 0 
+    # front and end pointers used to track kth node from start/end of list 
+    front = None
+    end = None 
+    
+    # traverse list using current while incrementing count in each iteration 
+    while current:
+        count += 1
+        
+        # if end not null = kth node from beginning foun
+        if end is not None:
+            # move end pointer to find kth node from end of list 
+            end = end.next 
+            
+        # when count equals k, kth node from start reached, save node as front
+        if count == k:
+            # set end pointer at head of linked list 
+            front = current 
+            end = head 
+        
+        # continue traversing list by moving both end and current forward
+        current = current.next # when current @ last node, end @ kth node from list end
+    
+    # swap values of front and end nodes     
+    temp = front.data 
+    front.data = end.data
+    end.data = temp
+    
+    return head
+
+'''
+statement: given the head of a linked list, the nodes in it are assigned to each group in a sequential manner. The length of these groups follows the sequence of natural numbers. Natural numbers are positive whole numbers denoted by 
+(
+1
+,
+2
+,
+3
+,
+4...
+)
+(1,2,3,4...)
+.
+
+In other words:
+
+The 
+1
+s
+t
+1 
+st
+ 
+ node is assigned to the first group.
+
+The 
+2
+n
+d
+2 
+nd
+ 
+ and 
+3
+r
+d
+3 
+rd
+ 
+ nodes are assigned to the second group.
+
+The 
+4
+t
+h
+4 
+th
+ 
+, 
+5
+t
+h
+5 
+th
+ 
+, and 
+6
+t
+h
+6 
+th
+ 
+ nodes are assigned to the third group, and so on.
+
+Your task is to reverse the nodes in each group with an even number of nodes and return the head of the modified linked list.
+
+Note: The length of the last group may be less than or equal to 1 + the length of the second to the last group.
+'''
