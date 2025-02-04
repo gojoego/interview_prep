@@ -85,28 +85,25 @@ of its digits
       happy number
 - return TRUE if n is a happy number, and FALSE if not
 
+algorithm: advance 2 pointers through sequence at 2 different speeds, slow at 1 step, 
+fast at 2 steps, happy numbers eventually reach 1, unhappy will cycle 
+
 time O(logn), space O(1)
 '''
 def is_happy_number(n):
     # set up 2 pointers
-    # slow pointer that points to input number
-    slow_pointer = n
-    # fast pointer that points to sum of squared digits of input number 
-    fast_pointer = sum_of_squared_digits(n)
+    slow = n # slow pointer @ input number
+    fast = sum_of_squared_digits(n) # fast pointer @ sum of squared digits of input number
     
-    # start loop until fast pointer reaches 1 or both pointers meet, indicating cycle 
-    while slow_pointer < fast_pointer:
-        if fast_pointer != 1 and fast_pointer != slow_pointer:
-            # update slow by adding squares of its digits and fast by adding squares of its digits twice 
-            slow_pointer = sum_of_squared_digits(slow_pointer)
-            fast_pointer = sum_of_squared_digits(sum_of_squared_digits(fast_pointer))
+    # start loop until fast reaches 1 and both pointers meet indicating cycle 
+    while fast != 1 and slow != fast:
+        # update slow by adding squares of its digits 
+        slow = sum_of_squared_digits(slow)
+        # update fast by adding squares of its digits twice 
+        fast = sum_of_squared_digits(sum_of_squared_digits(fast))      
     
-    # if fast pointer equals 1, return True, indicating a happy number
-    if fast_pointer == 1:
-        return True
-    # if loop exits without finding happy number, return False, indicating cycle and not happy number
-    else:
-        return False
+    # return boolean that evaluates if fast pointer equals 1 
+    return fast == 1
  
 def sum_of_squared_digits(number):
     total_sum = 0
@@ -115,6 +112,20 @@ def sum_of_squared_digits(number):
         number = number // 10
         total_sum += digit ** 2
     return total_sum
+
+def naive_happy(n):
+    seen = set()
+    
+    while n != 1 and n not in seen:
+        seen.add(n)
+        n = sum_of_squared_digits(n)
+    
+    return n == 1
+
+'''
+statement: Check whether or not a linked list contains a cycle. If a cycle exists, return TRUE. Otherwise, return FALSE. The cycle means that at least one node can be reached again by traversing the next pointer.
+'''
+
 
 '''
 statement: in a linked list of even length n, the node at position i (0-based indexing) 

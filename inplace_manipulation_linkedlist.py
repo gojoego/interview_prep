@@ -432,70 +432,278 @@ def swap_nodes(head, k):
     return head
 
 '''
-statement: given the head of a linked list, the nodes in it are assigned to each group in a sequential manner. The length of these groups follows the sequence of natural numbers. Natural numbers are positive whole numbers denoted by 
-(
-1
-,
-2
-,
-3
-,
-4...
-)
-(1,2,3,4...)
-.
+statement: given the head of a linked list, the nodes in it are assigned to each group in a 
+sequential manner, the length of these groups follows the sequence of natural numbers
 
-In other words:
+natural numbers are positive whole numbers denoted by (1,2,3,4...)
 
-The 
-1
-s
-t
-1 
-st
- 
- node is assigned to the first group.
+in other words:
+    - the 1st node is assigned to the first group
+    - the 2nd and 3rd nodes are assigned to the second group
+    - the 4th, 5th, and 6th nodes are assigned to the third group, and so on.
 
-The 
-2
-n
-d
-2 
-nd
- 
- and 
-3
-r
-d
-3 
-rd
- 
- nodes are assigned to the second group.
+your task is to reverse the nodes in each group with an even number of nodes and return
+the head of the modified linked list
 
-The 
-4
-t
-h
-4 
-th
- 
-, 
-5
-t
-h
-5 
-th
- 
-, and 
-6
-t
-h
-6 
-th
- 
- nodes are assigned to the third group, and so on.
+note: the length of the last group may be less than or equal to 1 + the length of the 
+second to the last group
 
-Your task is to reverse the nodes in each group with an even number of nodes and return the head of the modified linked list.
+algorithm: reverse even number node groups wihtout using extra storage by directly applying 
+links between nodes - use previous, current, and next pointers to reverse nodes in even groups -
+adjust connections at end of each reversed group to integrate reversed segments into original list
 
-Note: The length of the last group may be less than or equal to 1 + the length of the second to the last group.
+time O(n) where n = number of nodes in linked list, space O(1)
 '''
+def reverse_even_length_groups(head):
+    # node immediately before current group 
+    previous = head 
+    
+    # initialize variable to track length of groups to 2 
+    group_length = 2 # no need to reverse head, odd number / 1 
+    
+    # iterate over list & track nodes successfully traversed in current group w num nodes variable
+    while previous.next:
+        node = previous
+        num_nodes = 0
+        
+        # traversing all nodes of current group 
+        for i in range(group_length): 
+            if not node.next:
+                break
+            num_nodes += 1 
+            node = node.next 
+        
+        # odd number of nodes -> move forward 
+        if num_nodes % 2:
+            previous = node 
+        # even length -> reverse nodes present in current group
+        else: 
+            # use previous, current and reverse pointers to reverse direction of next pointer of nodes
+            reverse = node.next 
+            current = previous.next 
+            for j in range(num_nodes):
+                current_next = current.next # saving reference to next node
+                current.next = reverse # point next of current to reverse - reverses direction 
+                reverse = current # next node in reversed group
+                current = current_next # continue reversal process 
+            # updating previous pointer after reversal of even group 
+            previous_next = previous.next 
+            previous.next = node 
+            previous = previous_next
+
+        # increment by 1 and repeat process until all nodes of list traversed 
+        group_length += 1 
+        
+    # return head of modified list 
+    return head 
+
+'''
+statement: given the head of a sorted linked list, remove all duplicates such that 
+each element appears only once, and return the list in sorted order, list is guaranteed 
+to be sorted in ascending order
+
+time O(n) where n = total number of nodes in list, space O(1)
+'''
+def remove_duplicates(head):
+    # initialize current pointer to head of linked list 
+    current = head
+    
+    # traverse list using current pointer checking for duplicates
+    while current != None: # traversal stops when None (end of list)
+       
+        # duplicate detected if current node value same as next node value -> delete
+        if current.data == current.next.data:
+    
+            # skip next node by pointing current to node after next 
+            current.next = current.next.next 
+        # if current node value different from next node value, move to next node    
+        else: 
+            current = current.next 
+    
+    # once entire list traversed, return head 
+    return head
+
+'''
+statement: you are given the head of a linked list and an integer k,
+remove all nodes from the linked list where the node's value equals k, 
+and return the head of the updated list
+
+algorithm: create dummy to handle scenarios where head node needs removal, 
+use 2 pointers to track previous node and current node, remove node if node data 
+equals k by updating next link of previous node, move both pointers otherwise 
+
+time O(n) where n = length of list, space O(1)
+'''
+def remove_elements(head, k):
+    # create dummy node pointing to head of linked list 
+    dummy = LinkedListNode(0)
+    dummy.next = dummy
+    
+    # initialize 2 pointers for traversal: previous @ dummy, current @ head 
+    previous = dummy
+    current = head 
+    
+    # iterate through linked list 
+    while current != None:
+        # if current node data matches target value k 
+        if current.data == k:
+            previous.next = current.next # update next pointer of previous node to skip current node 
+            current = current.next # move current pointer forward 
+        
+        # if current node value doesn't match k, move both pointers forward 
+        else: 
+            previous = current
+            current = current.next     
+    # return modified list's head 
+    return dummy.next 
+
+'''
+statement: you are given head of a singly linked list and an integer, k,
+your task is to split the linked list into k consecutive parts
+
+    - each part should have a size as equal as possible, with the difference 
+      between any two parts being at most 1
+    - if the list cannot be evenly divided, the earlier parts should have more 
+      nodes than the later ones
+    - any parts that cannot be filled with nodes should be represented as NULL
+    - the parts must appear in the same order as in the input-linked list
+
+return an array of the k parts, maintaining the specified conditions
+
+time O(n) where n = total number of nodes, space O(1)
+'''
+def split_list_to_parts(head, k):
+    # initialize empty array, ans, of size k
+    ans = [None] * k # effectively adds null for empty parts if nodes fewer than k
+
+    # set current to head of list
+    current = head
+ 
+    # traverse linked list to calculate total number of nodes, size 
+    size = 0
+    while current != None:
+        size += 1
+        current = current.next 
+    
+    # compute base size of each part, split = size/k
+    split = size // k 
+    
+    # calculate number extra nodes to be distribruted among first few parts, remaining = size % k 
+    remaining = size % k 
+ 
+    current = head 
+    previous = current
+    
+    # for each part, from 0 to k - 1 
+    for i in range(k):
+        # start a new part 
+        new = current
+        
+        # determine size of current part, current_size, as split + 1 if remaining > 0 
+        current_size = split
+        if remaining > 0:
+            remaining -= 1
+            current_size += 1 # increment current size if extra nodes available 
+        
+        # traverse and disconnect current_size nodes, updating current and adding part to ans 
+        j = 0 
+        while j < current_size: # traversing current part until end 
+            previous = current
+            if current != None:
+                current = current.next 
+            j += 1
+        
+        # disconnect current part from rest of list 
+        if previous != None:
+            previous.next = None    
+        
+        # store current part in result array 
+        ans[i] = new
+    
+    # return ans 
+    return ans 
+
+'''
+statement: given the head of a linked list and two integers, m and n, remove some 
+specific nodes from the list and return the head of the modified, linked list, the 
+list should be traversed, and nodes removed as follows:
+
+    1. start with the head node and set it as the current node
+    2. traverse the next m nodes from the current node without deleting them
+    3. traverse the next n nodes and delete them
+    4. repeat steps 2 and 3 above until the end of the linked list is reached
+
+algorithm: modify list by alternately keeping and skipping nodes based on given 
+values of m and n, traverse m nodes from head, skip next n nodes by advancing pointer 
+through list without linking those nodes to previously retained nodes, skipping 
+nodes means deleting them from given list, reconnect retained section to remaining 
+nodes, repeat process until list traversed and return head 
+
+time O(n) where n = total number of nodes, space O(1)
+'''
+def delete_nodes(head, m, n):
+    # set current node to head of linked list 
+    current = head 
+    
+    # track last node to be retained in current segment of m nodes
+    last_m_node = head 
+    
+    # traverse starting from head 
+    while current:
+        # keep next m nodes
+        m_count = m 
+    
+        # traverse and retain specified number of m nodes 
+        while current and m_count > 0:
+            
+            # update last node to keep 
+            last_m_node = current
+            
+            # move to next node 
+            current = current.next 
+            m_count -= 1 
+            
+        # skip next set of nodes, n, by advancing through list without retaining them 
+        n_count = n
+        while current and n_count > 0:
+            
+            # move to next node 
+            current = current.next 
+            n_count -= 1 
+    
+        # after skipping n nodes, link last retained node to first node of next m nodes to bypass skipped nodes
+        last_m_node.next = current 
+    
+    # repeat process until end of list reached, return head of updated list 
+    return head 
+
+'''
+statement: given a singly linked list, swap every two adjacent nodes of the linked list, 
+after the swap, return the head of the linked list
+
+note: solve the problem without modifying the values in the list's nodes - in other words, 
+only the nodes themselves can be changed
+
+time O(n) where n = total number of nodes, space O(1)
+'''
+def swap_pairs(head):
+    dummy = LinkedListNode(0) # dummy node to handle edge cases 
+    dummy.next = head 
+    current = dummy # tracks node before pair 
+    
+    # check to make sure there are at least 2 nodes in linked list 
+    while current.next and current.next.next: 
+        # identify nodes to be swapped 
+        first = current.next
+        second = current.next.next  
+        
+        # swap 2 nodes by changing pointers, reconnect swapped pair of nodes with rest of linked list 
+        current.next = second
+        first.next = second.next 
+        second.next = first 
+
+        # move to next pair 
+        current = first 
+
+    # repeat process until only one node is left or we reach end of linked list 
+    return dummy.next 
