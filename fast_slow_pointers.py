@@ -88,7 +88,7 @@ of its digits
 algorithm: advance 2 pointers through sequence at 2 different speeds, slow at 1 step, 
 fast at 2 steps, happy numbers eventually reach 1, unhappy will cycle 
 
-time O(logn), space O(1)
+time O(logn), space O(1) where n = number of nodes in linked list 
 '''
 def is_happy_number(n):
     # set up 2 pointers
@@ -123,9 +123,225 @@ def naive_happy(n):
     return n == 1
 
 '''
-statement: Check whether or not a linked list contains a cycle. If a cycle exists, return TRUE. Otherwise, return FALSE. The cycle means that at least one node can be reached again by traversing the next pointer.
-'''
+statement: check whether or not a linked list contains a cycle - if a cycle exists, 
+return TRUE - otherwise, return FALSE, the cycle means that at least one node can be 
+reached again by traversing the next pointer
 
+algorithm: use fast/slow pointers to find cycle without requiring multiple traversals or 
+additional data structures, no cycle -> fast pointer will reach end 
+
+time O(logn), space O(1) where n = number of nodes in linked list 
+'''
+def detect_cycle(head):
+    # edge case for empty lists 
+    if head == None:
+        return False 
+    
+    # initialize both slow and fast pointers to linked list head 
+    slow = fast = head 
+    
+    # move slow 1, fast 2 nodes 
+    while fast and fast.next: 
+
+        slow = slow.next 
+        fast = fast.next.next 
+
+        # if both pointers reference same node, return True
+        if fast == slow: 
+            return True
+        
+    # if fast pointer reaches end of list, return False 
+    return False 
+
+def naive_cycle_detector(head):
+    visited = set()
+    current = head 
+    
+    while current:
+        if current in visited:
+            return True
+        visited.add(current)
+        current = current.next 
+    return False 
+
+'''
+statement: given the head of a singly linked list, return the middle node of the linked list, 
+if the number of nodes in the linked list is even, there will be two middle nodes, so return 
+the second one
+
+algorithm: fast/slow pointers used to find midpoint by leveraging speeds, both point at head
+initially, slow moves 1, fast 2, when fast reaches Null or end -> slow at middle for odd numbered
+and at second middle node for even length lists  
+
+time O(logn), space O(1) where n = number of nodes in linked list 
+'''
+def get_middle_node(head):
+    # create slow and fast pointers initialized to head of linked list 
+    slow = fast = head 
+    
+    # traverse list, moving slow pointer 1 step, fast 2 steps 
+    while fast and fast.next: 
+        slow = slow.next 
+        # when fast reaches end or Null -> slow pointing at middle of list 
+        fast = fast.next.next 
+
+    # return node that slow pointer points to 
+    return slow 
+
+# time/space O(n), use external array and return element at array.length/2 as middle node
+def naive_middle_node(head):
+    elements = []
+    
+    current = head 
+    
+    while current:
+        elements.append(current.data)
+        current = current.next 
+    
+    middle = len(elements) // 2
+    
+    return elements[middle]
+
+'''
+statement: we are given a circular array of non-zero integers, nums, where each integer represents 
+the number of steps to be taken either forward or backward from its current index, positive values 
+indicate forward movement, while negative values imply backward movement, when reaching either end 
+of the array, the traversal wraps around to the opposite end
+
+the input array may contain a cycle, which is a sequence of indexes characterized by the following:
+
+    - the sequence starts and ends at the same index
+    - the length of the sequence is at least two
+    - the loop must be in a single direction, forward or backward
+    
+note: a cycle in the array does not have to originate at the beginning, it may begin from any point 
+in the array
+
+your task is to determine if nums has a cycle, return TRUE if there is a cycle, otherwise return FALSE
+
+algorithm: initialize 2 pointers for each element of array with slow 1 step and fast 2 steps, position 
+determined by current value, if movement results in pointer pointing to value with different sign or 
+pointing to same index previously pointed to or fast pointer reached end and no cycle detected -> move 
+to next element, both pointers eventually catch up if cycle
+
+time O(n^2), time O(1)
+'''
+def circular_array_loop(nums):  
+    size = len(nums)
+    
+    # traverse entire nums using slow/fast pointers, starting from index 0 
+    for i in range(size):
+        # set slow/fast pointers at same index value  
+        slow = fast = i 
+        
+        # set true in forward if element positive, set False otherwise 
+        forward = nums[i] > 0
+        
+        # if loop direction changes or taking a step returns to same location, continue to next element
+        while True:
+            # move slow pointer 1 step forward/backward
+            slow = next_step(slow, nums[slow], size)
+            
+            # if cycle not possible, break loop and start from next element
+            if is_not_cycle(nums, forward, slow):
+                break 
+            
+            # move fast 2x forward/backward 
+            fast = next_step(fast, nums[fast], size) # first move 
+            
+            # if cycle not possible, break loop and start from next element
+            if is_not_cycle(nums, forward, fast):
+                break
+            
+            fast = next_step(fast, nums[fast], size) # second move 
+            
+            # if cycle not possible, break loop and start from next element
+            if is_not_cycle(nums, forward, fast):
+                break
+            
+            # if fast/slow pointers meet -> loop found -> return True 
+            if slow == fast:
+                return True
+
+    # return False if no loop encountered after traversing whole array     
+    return False
+
+# function to calculate next step 
+def next_step(pointer, value, size):
+    result = (pointer + value) % size
+    
+    if result < 0:
+        result += size
+        
+    return result 
+
+# function to detect if a cycle does not exist 
+def is_not_cycle(nums, previous_direction, pointer):
+    # set current direction to True if current element is positive, set False otherwise 
+    current_direction = nums[pointer] >= 0 
+    
+    # if current & previous direction differ or moving pointer takes back it to same value...
+    if (previous_direction != current_direction) or (nums[pointer] % len(nums) == 0):
+        return True # ... cycle is not possible, return True,
+    else: # otherwise return False 
+        return False
+
+def main():
+
+    input = (
+            [-2, -3, -9],
+            [-5, -4, -3, -2, -1],
+            [-1, -2, -3, -4, -5],
+            [2, 1, -1, -2],
+            [-1, -2, -3, -4, -5, 6],
+            [1, 2, -3, 3, 4, 7, 1],
+            [2, 2, 2, 7, 2, -1, 2, -1, -1]
+            )
+    num = 1
+
+    for i in input:
+        print(f"{num}.\tCircular array = {i}")
+        print(f"\n\tFound loop = {circular_array_loop(i)}")
+        print("-"*100, "\n")
+        num += 1
+
+
+if __name__ == "__main__":
+    main()    
+
+'''
+naive algorithm: iterate through each element of array, check for cycles in both directions with 
+current element, use another array to track visited elements, return True for if cycle found, 
+move to next iteration for direction change, inner loop for each element
+
+time O(n^2), space O(n)
+'''
+def naive_circular_array_loop(nums):
+    size = len(nums)
+    
+    for i in range(size):
+        visited = set() # keep track of visited indices to detect cycle 
+        current = i 
+        direction = nums[i] > 0 # determine direction - forward or backward 
+        
+        while current not in visited:
+            visited.add(current)
+            next_index = (current + nums[current]) % size 
+            
+            if next_index < 0:
+                next_index += size # handle negative wrap-around 
+                
+            # if direction changes or next step lands on same element, stop checking 
+            if (nums[next_index] > 0) != direction or next_index == current:
+                break 
+            
+            current = next_index # move to next step 
+            
+            # if we return to starting point, cycle detected 
+            if current == i:
+                return True
+            
+    return False
 
 '''
 statement: in a linked list of even length n, the node at position i (0-based indexing) 
@@ -185,7 +401,7 @@ def twin_sum(head):
         current = current.next 
     
     # return max_sum as max twin sum of given linked list 
-    return
+    return max_sum
 
 '''
 statement: given a circular linked list, list, of positive integers, your task is to split it into 
