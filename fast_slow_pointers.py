@@ -286,29 +286,6 @@ def is_not_cycle(nums, previous_direction, pointer):
     else: # otherwise return False 
         return False
 
-def main():
-
-    input = (
-            [-2, -3, -9],
-            [-5, -4, -3, -2, -1],
-            [-1, -2, -3, -4, -5],
-            [2, 1, -1, -2],
-            [-1, -2, -3, -4, -5, 6],
-            [1, 2, -3, 3, 4, 7, 1],
-            [2, 2, 2, 7, 2, -1, 2, -1, -1]
-            )
-    num = 1
-
-    for i in input:
-        print(f"{num}.\tCircular array = {i}")
-        print(f"\n\tFound loop = {circular_array_loop(i)}")
-        print("-"*100, "\n")
-        num += 1
-
-
-if __name__ == "__main__":
-    main()    
-
 '''
 naive algorithm: iterate through each element of array, check for cycles in both directions with 
 current element, use another array to track visited elements, return True for if cycle found, 
@@ -342,6 +319,119 @@ def naive_circular_array_loop(nums):
                 return True
             
     return False
+
+'''
+statement: given an array of positive numbers, nums, such that the values lie in the range [1,n], 
+inclusive, and that there are n + 1 numbers in the array, find and return the duplicate number 
+present in nums, there is only one repeated number in nums, but it may appear more than once in the 
+array
+
+note: you cannot modify the given array nums, you have to solve the problem using only constant 
+extra space
+
+algorithm: 
+
+1.  ID cycle to confirm duplicate existence 
+    - slow pointer moves 1, fast 2 until meeting 
+    - intersection point of 2 pointers generally not entry point of cycle 
+
+2.  locate entry point of cycle -> represents duplicate number 
+    - fast pointer moves at same pace as slow 
+    - slow starts at 0th, fast at intersection 
+    - pointers meet at ending point 
+    - common ending position will be entry point of cycle  
+    
+time O(logn), space O(1) where n = length of array 
+'''
+def find_duplicate(nums):
+    # traverse in nums using fast and slow pointers 
+    fast = slow = nums[0]
+    
+    # part 1 - traverse array until intersection point found 
+    while True: # move pointers until they meet 
+        # move slow pointer using nums[slow] flow 
+        slow = nums[slow]
+        
+        # move fast pointer 2x as fast as slow point using nums[nums[fast]] flow 
+        fast = nums[nums[fast]]
+        
+        # break loop when slow pointer becomes equal to fast -> intersection found 
+        if slow == fast:
+            break 
+    
+    # part 2 - after pointers meet, traverse nums again 
+    slow = nums[0] # reset slow pointer to start of array
+    
+    # move slow from start of nums and fast from meeting point at same speed until meeting again 
+    while fast != slow:
+        # move slow pointer using nums[slow] flow 
+        slow = nums[slow]   
+            
+        # move fast pointer same as slow point using nums[fast] flow 
+        fast = nums[fast]
+        
+    # return fast pointer that points to duplicate number of array 
+    return fast
+
+'''
+statement: given the head of a linked list, your task is to check whether the linked list is a 
+palindrome or not, return TRUE if the linked list is a palindrome; otherwise, return FALSE
+
+note: the input linked list prior to the checking process should be identical to the list after 
+the checking process has been completed
+
+algorithm: find midpoint of given list, reverse second half and compare halves for symmetry; if
+halves match -> palindrome, reversing half allows use of next pointers for comparison 
+
+time O(logn), space O(1) where n = length of array 
+'''
+def palindrome(head):
+    # edge cases - single node or empty list = palindrome  
+    if not head or not head.next: 
+        return True
+    
+    # initialize fast and slow pointers to head of list 
+    fast = slow = head 
+    
+    # traverse with slow pointer moving 1 node at a time, fast pointer 2 nodes 
+    while fast and fast.next:
+        slow = slow.next 
+        fast = fast.next.next 
+        
+    # slow pointer should now be pointing at middle of list - reverse 2nd half 
+    revert_data = reverse_linked_list(slow)
+    
+    # compare first half of list with reversed second half 
+    check = compare_two_halves(head, revert_data)
+    
+    # re-reverse second half of list to restore original linked list
+    reverse_linked_list(revert_data)
+    
+    # if both halves of list match -> palindrome, return True, otherwise return False   
+    if check:
+        return True
+    return False
+
+def compare_two_halves(first_half, second_half):
+    # compare corresponding nodes of first and second halves of linked list 
+    while first_half and second_half:
+        if first_half.data != second_half.data:
+            return False
+        else:
+            first_half = first_half.next 
+            second_half = second_half.next 
+    return True
+
+def reverse_linked_list(slow_pointer):
+    previous = None
+    next = None
+    current = slow_pointer
+    while current is not None:
+        next = current.next 
+        current.next = previous
+        previous = current
+        current = next 
+    return previous
 
 '''
 statement: in a linked list of even length n, the node at position i (0-based indexing) 
