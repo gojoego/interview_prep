@@ -1,3 +1,204 @@
+'''
+
+sliding window pattern
+-used to process sequential data, arrays, strings to efficiently solve subarray or substring problems 
+-maintains dynamic window that slides through array or string, adjusting boundaries as needed for tracking 
+-window slides over data in chunks corresponding to window size according to problem requirements 
+-variation of 2 pointers pattern w/ pointers being used to set window bounds 
+-time O(n)
+
+examples
+1. max sum subarray of size k 
+2. longest substring without repeating characters 
+3. given string s and string t, find shortest substring in s that contains all t characters
+4. given array of integers and target sum, find length of smallest subarray whose sum is greater than or equal to target sum
+
+does your problem match this pattern? yes, if...
+-contiguous data 
+-processing subsets of elements
+-efficient computation time complexity
+
+real-world problems
+-telecommunications
+-video streaming 
+-social media content mining 
+
+'''
+
+'''
+
+statement: given a string, dna, that represents a DNA subsequence, and a number k, return all 
+the contiguous subsequences (substrings) of length k that occur more than once in the string, 
+the order of the returned subsequences does not matter, if no repeated substring is found, the 
+function should return an empty set
+
+the DNA sequence is composed of a series of nucleotides abbreviated as A, C, G, and T; 
+for example ACGAATTCCG is a DNA sequence; when studying DNA, it is useful to identify repeated sequences in it
+
+algorithm:
+-use Rabin-Karp algo that uses sliding window with rolling hash for pattern matching 
+-traverse string by using sliding window of length k, which slides 1 character forward per iteration 
+-compute hash of current k-length substring in window each iteration 
+-check if hash already in set 
+    -add to output if repeated
+    -add to set otherwise 
+-repeat for all k-length substrings and return output 
+
+polynomial rolling hash:
+-used to achieve constant-time hashing: H = c1 * a^k-1 + c2 * a^k-2...
+-value of 4 used for constant to ensure each nucleotide assigned unique value in polynomial rolling hash 
+ but any number larger than 4 can be used -> choose number large enough to avoid collisions while still 
+ being small to minimuze risk of arithmetic overflow 
+
+time O(n), space O(n) where n = length of input string 
+'''
+def find_repeated_sequences(dna, k):
+    string_length = len(dna)
+    
+    if string_length < k:
+        return set()
+    
+    mapping = {'A': 1, 'C': 2, 'G': 3, 'T': 4}
+    base_value = 4
+    
+    # numeric representation of sequence 
+    numbers = [] # easier access to numeric value of nucleotides when calculating hash value 
+    for i in range(string_length):
+        numbers.append(mapping.get(dna[i]))
+        
+    hash_value = 0 # to store hash value of current k-length sequence in window 
+    hash_set = set() # stores all unique hash values of k-length substrings 
+    output = set() # repeated substrings 
+    
+    # iterate over length k substrings of input string 
+    for i in range(string_length - k + 1):
+        # if window at initial position, calculate hash value from scratch 
+        if i == 0:
+            for j in range(k):
+                hash_value += numbers[j] * (base_value ** (k - j - 1)) # polynomial hash function
+        else:   
+            # calculate hash value of current k-length substring by utilizing hash value of previous k-length substring
+            previous_hash_value = hash_value
+            hash_value = ((previous_hash_value - numbers[i - 1] * (base_value ** (k - 1))) * base_value) + numbers[i + k - 1]
+                
+        # if hash of substring has already been stored, substring repeated, add to output 
+        if hash_value in hash_set:
+            output.add(dna[i : i + k])
+        
+        # add evaluated hash value to hash set 
+        hash_set.add(hash_value)
+    
+    # when all substrings evaluated, return output
+    return output
+
+'''
+naive DNA repeated sequences algorithm: iterate though input DNA sequence, add all unique
+substrings of length k to set; if substring already present in set -> repeated substring 
+
+time and space O(kn) where k = size of each contiguous subsequence and n = length of input sequence  
+'''
+
+def find_repeated_sequences_naive(dna, k):
+    seen = set()
+    output = set()
+    
+    for i in range(len(dna) - k + 1):
+        substring = dna[i : i + k]
+        if substring in seen:
+            output.add(substring)
+        seen.add(substring)
+    
+    return output
+
+'''
+statement: given integer list, nums, find max values in all continguous subarrays (windows)
+of size w
+
+algorithm: 
+- check which index has fallen out of current window and remove it
+- processing elements of first window 
+    - every time new index added to window, iterate backward and remove indices 
+      with values smaller than or equal to new element in window -> "clean up"
+    - perform clean up starting with second element added to first window -> 
+      elements smaller than max of that window excluded already 
+- iterate over remaining input list 
+    - clean up step for each element 
+    - check whether first index in current window part still part of current window 
+    - remove first index if not 
+- return output list when entire input list processed 
+
+deque: double ended queue that supports constant time removals from both ends 
+    -> reduces time complexity to O(n)
+    
+time O(n) where n = size of list of integers, space O(w) where w = window size 
+'''
+from collections import deque
+
+def find_max_sliding_window(nums, w):
+    # if length of input list is 1, return input list 
+    if len(nums) == 1:
+        return nums
+    
+    output = []
+    
+    # initialize empty deque data structure 
+    current_window = deque()
+    
+    # iterate through first w elements in input array
+    for i in range(w):
+        # for every element, remove previous smaller elements from current window 
+        clean_up(i, current_window, nums)
+        # append index of current element to current window 
+        current_window.append(i)
+    
+    # appending max element of current window to output list 
+    output.append(nums[current_window[0]]) # store max value of initial window 
+    
+    
+    for i in range(w, len(nums)):
+        # performing cleanup operations on deque to maintain decreasing order of values 
+        clean_up(i, current_window, nums)
+        # remove first index from current window if falls outside of window 
+        if current_window and current_window[0] <= (i - w):
+            current_window.popleft()
+        # append index of current element to current window 
+        current_window.append(i)
+        # appending max element of current window in output list 
+        output.append(nums[current_window[0]])
+    
+    # slide window through array, updating/storing max values for each window, then return array containing output
+    return output
+
+# helper function to clean up queue 
+def clean_up(i, current_window, nums):
+    # remove all indices from current window whose corresponding values smaller/equal to current element
+    while current_window and nums[i] >= nums[current_window[-1]]:
+        current_window.pop()
+
+'''
+naive algorithm for sliding window max: slide window over input list and find max in each window
+separately, then add to output list; in each iteration, update current window by removin first 
+element from current window and adding incoming element of input list; return list containing 
+maximums of all (n - w + 1) windows 
+
+time O(n * w), space O(w)
+'''
+
+def naive_sliding_window_max(nums, w):
+    if not nums or w == 0:
+        return []
+    
+    n = len(nums)
+    output = []
+    
+    # iterating over each window position 
+    for i in range(n - w + 1):
+        # find max element in current window 
+        max_value = max(nums[i : i + w])
+        output.append(max_value)
+    
+    return output
+
 def find_longest_substring(input_str):
     
     if len(input_str) == 0: # check for empty string
@@ -10,8 +211,7 @@ def find_longest_substring(input_str):
     # traverse string to find longest substring w/ out repeating chars 
     for index, value in enumerate(input_str):
         
-        # check if cu
-        # rrent character already seen in current window 
+        # check if current character already seen in current window 
         if value in last_seen_at and last_seen_at[value] >= window_start:
             # if yes, update start of window to index after last occurrence
             window_start = last_seen_at[value] + 1
