@@ -199,6 +199,122 @@ def naive_sliding_window_max(nums, w):
     
     return output
 
+'''
+Minimum Window Subsequence
+
+statement: given two strings, str1 and str2, find the shortest substring in str1 such that str2 
+is a subsequence of that substring
+
+- substring: contiguous sequence of characters within a string
+- subsequence: sequence that can be derived from another sequence by deleting zero or 
+  more elements without changing the order of the remaining elements
+
+let's say you have the following two strings:
+
+str1 = “abbcb”
+str2 = “ac”
+
+in this example, “abbc” is a substring of str1, from which we can derive str2 simply by 
+deleting both the instances of the character b; therefore, str2 is a subsequence of this 
+substring; since this substring is the shortest among all the substrings in which str2 is 
+present as a subsequence, the function should return this substring, that is, “abbc”
+
+- if there is no substring in str1 that covers all characters in str2, return an empty string
+- if there are multiple minimum-length substrings that meet the subsequence requirement, return 
+the one with the left-most starting index
+
+algorithm: use sliding window to eliminate extra traversals of substrings, only consider substrings 
+that are sure to contain all characters of str2 in same order, track whether subsequence has been
+found or not and select shortest subsequence from str1 
+
+time O(n * m) where n and m = lengths of str1 and str2, space O(1)
+'''
+
+def min_window(str1, str2):
+    size_str1 = len(str1)
+    size_str2 = len(str2)
+
+    min_sub_length = float('inf')
+    
+    index_s1 = index_s2 = 0
+    
+    min_subsequence = "" # output = smallest possible subsequence 
+    
+    # iterate through str1 to find potential window that contains all chars of str2 in order 
+    while index_s1 < size_str1:
+        # check if characters being pointed at are the same 
+        if str1[index_s1] == str2[index_s2]:
+            # if pointed character same in both strings increment index_s2 
+            index_s2 += 1 # index_s2 will only reach end of str2 if all chars found in str1
+            
+            # backtrack once potential window end found until all chars of str2 found in reverse, helps locate potential start of smallest subsequence 
+            if index_s2 == size_str2: # check if index_s2 at end of str2
+                # initialize start to index where all characters of str2 present in str1
+                start, end = index_s1, index_s1
+                index_s2 -= 1 
+                
+                # decrement pointer index_s2 and start reverse loop
+                while index_s2 >= 0:    
+                    # decrement pointer index_s2 until all characters of str2 found in str1 
+                    if str1[start] == str2[index_s2]:
+                        index_s2 -= 1
+                    
+                    # decrement start pointer everytime to find starting point of required subsequence
+                    start -= 1 
+                
+                # repeat with 2nd character of current window until str1 end met 
+                start += 1
+                
+                # check if min sub length of subsequence pointed by start and end pointers less than current 
+                if end - start < min_sub_length:
+                    # update min sub length if current subsequence shorter
+                    min_sub_length = end - start
+                    
+                    # update min subsequence string to this new shorter string 
+                    min_subsequence = str1[start : end + 1]
+                
+                # set index_s1 to start to continue checking in str1 after discovered subsequence
+                index_s1 = start
+                index_s2 = 0    
+
+        # increment index_s1 to check next character in str1 
+        index_s1 += 1   
+    
+    # return min window subsequence 
+    return min_subsequence
+
+'''
+
+naive approach to the minimum window subsequence: generate all possible substrings of str1, 
+check which substrings contain str2 as subsequence, return shortest 
+
+time O(n ^ 3), space O(1)
+
+'''
+
+def naive_shortest_substring(str1, str2):
+    n = len(str1)
+    min_length = float('inf')
+    result = ""
+    
+    for i in range(n):
+        for j in range(i, n):
+            
+            sub = str1[i : j + 1]
+            
+            if is_subsequence(sub, str2):
+                if len(sub) < min_length:
+                    min_length = len(sub)
+                    result = sub
+                break
+            
+    return result
+
+# helper function that checks if target is a subsequence of sub 
+def is_subsequence(sub, target):
+    it = iter(sub)
+    return all(char in it for char in target)
+
 def find_longest_substring(input_str):
     
     if len(input_str) == 0: # check for empty string
@@ -223,6 +339,193 @@ def find_longest_substring(input_str):
         longest = max(longest, index - window_start + 1)
             
     return longest
+
+'''
+statement: given a string s and an integer k, find the length of the longest substring 
+in s, where all characters are identical, after replacing, at most, k characters with any 
+other lowercase English character
+
+algorithm:
+- iterate over input string using 2 pointers
+- in each iteration
+    - add new character into hash map if not already present or increment if present 
+    - slide window 1 step forward if number of replacements required in current exceeded limit 
+    - if current window longest, update length of longest substring w same character 
+- return length of longest substring w same character 
+
+time O(n) where n = length of input string, space O(1)   
+'''
+def longest_repeating_character_replacement(s, k):
+    string_length = len(s)
+    length_max_substring = 0 # length of longest substring same characters after replacement  
+    start = 0 
+    character_frequency = {} # hash map to store frequency of all characters in current window 
+    most_freq_char = 0 
+    
+    # iterate over input string using sliding window pattern
+    for end in range(string_length):
+        # check if new character in hash map
+        if s[end] not in character_frequency:
+            character_frequency[s[end]] = 1 # adding new character to frequency map 
+        else: 
+            character_frequency[s[end]] += 1
+        
+        # update most frequency character 
+        most_freq_char = max(most_freq_char, character_frequency[s[end]])
+        
+        # if number of replacements in current window exceeded limit, slide window 1 step forward 
+        if end - start + 1 - most_freq_char > k:
+            character_frequency[s[start]] -= 1 
+            start += 1 
+    
+        # if current window is longest so far, store window length as length of max substring 
+        length_max_substring = max(end - start + 1, length_max_substring)
+            
+    # return length of max substring w same characters after replacement(s)
+    return length_max_substring
+
+'''
+naive algorithm for longest repeating character replacement: iterate over each character of 
+string to form all possible substrings; explore possible substrings starting from that position;
+calculate number of required replacements to make all characters identical using nested loop;
+if count is less than or equal to k and length of substring is longer than previous longest 
+identical character substring, update length
+
+time O(n ^ 3), space O(n)
+'''
+def naive_longest_repeating_character_replacement(s, k):
+    n = len(s)
+    max_length = 0 
+    
+    # iterate over each character as starting piont 
+    for start in range(n):
+        for end in range(start, n): 
+            char_count = {} # frequency of character in substring 
+            max_freq = 0 
+            
+            # count character frequencies in substring s[start: end + 1]
+            for i in range(start, end + 1):
+                char_count[s[i]] = char_count.get(s[i], 0) + 1 
+                max_freq = max(max_freq, char_count[s[i]])
+                
+            # number of replacements needed to make all characters same 
+            length = end - start + 1 
+            if length - max_freq <= k: 
+                max_length = max(max_length, length)
+    
+    return max_length
+
+'''
+statement: given two strings, s and t, find the minimum window substring in s, 
+which has the following properties:
+
+    - it is the shortest substring of s that includes all of the characters 
+      present in t
+    - it must contain at least the same frequency of each character as in t
+    - the order of the characters does not matter here
+
+note: if there are multiple valid minimum window substrings, return any one of them
+
+algorithm: sliding window used to eliminate cost of iterating over each substring separately; 
+search for shortest substring of s that contains all characters of t; once initial window in s 
+that contains all of t found -> slide window in order to find shortest 
+
+time O(n + m) where n = s length and m = t length, space O(1)
+'''
+def min_window(s: str, t: str) -> str:
+    if not t:
+        return ""
+    
+    # dictionaries to store req char counts and current window char counts 
+    req_count = {} # characters in 't' and their corresponding frequencies 
+    window = {} # track frequency of 't' characters in current window 
+    
+    # populate req count with character frequencies of t 
+    for character in t:
+        req_count[character] = req_count.get(character, 0) + 1
+
+    # variables to indicate whether to increase/decrease size of sliding window 
+    current = 0 # incremented when char whose freq in window hash map matches freq in req count
+    required = len(req_count) # stores size of req count 
+    
+    # result variables to track best window 
+    result = [-1, -1] # stores start/end indices of min window 
+    result_length = float("inf") # length of min window 
+    
+    # sliding window pointers   
+    left = 0
+    for right in range(len(s)):
+        char = s[right]
+        
+        # if char is in 't' update window count     
+        if char in req_count:
+            window[char] = window.get(char, 0) + 1
+
+            # update current if freq of char in window matches required frequency 
+            if window[char] == req_count[char]:
+                current += 1 
+        
+        # contract window while all required characters present 
+        while current == required:
+            # update result if current window smaller than previous best 
+            if (right - left + 1) < result_length:
+                result = [left, right]
+                result_length = (right - left + 1)
+            
+            # shrink window from left 
+            left_char = s[left]
+            if left_char in req_count:
+                # decrement count of left char in window 
+                window[left_char] -= 1 
+                # if left char freq in window less than required, update current 
+                if window[left_char] < req_count[left_char]:
+                    current -= 1 
+            left += 1 # moving left pointer to shrink window 
+    
+    # return min window if found, empty string otherwise 
+    return s[result[0]: result[1] + 1] if result_length != float("inf") else ""
+            
+''' 
+naive solution to min window substring problem: find all possible substrings of s, 
+ID shortest substring that contains all characters of t with corresponding frequencies 
+equal to or greater than those in t 
+
+time O(n ^ 2), space O(n)
+'''
+from collections import Counter
+
+def naive_min_window(s: str, t: str) -> str:
+    # return empty string if t empty 
+    if not t:
+        return ""
+    
+    # get frequency count of characters in 't' 
+    req_count: dict[str, int] = Counter(t)
+    
+    # variables to track best window 
+    result: str = ""
+    result_length: int = float('inf')
+    
+    n: int = len(s)
+    
+    # generate all substrings and check if they contain 't'
+    for i in range(n):
+        for j in range(i, n):
+            window: str = s[i : j + 1] # extract substring 
+            window_count: dict[str, int] = Counter(window) # frequency count of the substring
+            
+            # chekc if substring contains all characters of 't' with required frequency
+            if all(window_count[char] >= req_count[char] for char in req_count):
+                # update result if current window smaller 
+                if len(window) < result_length:
+                    result = window
+                    result_length = len(window)
+    
+    return result
+
+def min_window(s, t):
+    # 
+    return 
 
 def min_sub_array_len(target, nums):
     window_size = float('inf') # store size of min subarray 
