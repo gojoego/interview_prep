@@ -523,26 +523,221 @@ def naive_min_window(s: str, t: str) -> str:
     
     return result
 
-def min_window(s, t):
-    # 
-    return 
+'''
+statement: given string 'input_str' return length of longest substring without 
+repeating characters 
 
+algorithm: modified sliding window that can grow to look for window that corresponds 
+to longest substring
+- traverse input string 
+- use hash map to store elements along with their respective indices 
+    - if current element present in map, check presence in current window; if present
+      end of current window and start of next found; check if longest window seen and update
+    - store current element in hash map w key as element and value as current index 
+- length of longest substring with distinct characters at traversal end, return value 
+
+time O(n) where n = input string length, space(1)
+'''
+def find_longest_substring_v1(input_str):
+    if len(input_str) == 0:
+        return 0
+    
+    # initialize empty hash map
+    last_seen_at = {}
+    # variables to track character indices and window start 
+    window_start, longest, window_length = 0, 0, 0
+    
+    # traverse string character by character
+    for index, value in enumerate(input_str):
+        # store current character in hash map if not already there
+        if value not in last_seen_at:
+            last_seen_at[value] = index # use index as value in map 
+        else: # repeating character found
+            # check if if current element occurs before/after window start 
+            if last_seen_at[value] >= window_start:
+                window_length = index - window_start
+                # update longest substring seen so far if current window greater 
+                if longest < window_length:
+                    longest = window_length
+                # update window start to previous current char location and increment
+                window_start = last_seen_at[value] + 1  
+
+            # update last occurrence of element in hash map 
+            last_seen_at[value] = index
+    
+    index += 1
+    
+    # update longest substring length and starting index 
+    if longest < index - window_start:
+        longest = index - window_start
+        
+    return longest 
+
+def find_longest_substring(input_str):
+    if len(input_str) == 0:
+        return 0 
+    
+    last_seen_at = {} # store last seen index of each character 
+    window_start = 0 # left boundary of sliding window 
+    longest = 0 
+    
+    for index, value in enumerate(input_str):
+        # if char in dictionary and within current window 
+        if value in last_seen_at and last_seen_at[value] >= window_start:
+            longest = max(longest, index - window_start)
+            # move window start to next position after previous occurrence of char
+            window_start = last_seen_at[value] + 1 
+
+        # update latest index of char in dict 
+        last_seen_at[value] = index
+    
+    # final update: compare longest length w last window after exiting loop
+    return max(longest, len(input_str) - window_start)
+'''
+
+naive approach to longest substring without repeating characters: explore all possible 
+substrings, checking for repeated characters, longest returned 
+
+time O(n ^ 3), space(min(m,n))
+
+'''
+def find_longest_substring_naive(input_str):
+    n = len(input_str)
+    longest = 0 
+    
+    for i in range(n):
+        for j in range(i, n):
+            substring = input_str[i : j + 1]
+            if is_unique(substring):
+                longest = max(longest, j - i + 1)
+    return longest
+
+def is_unique(substring):
+    return len(set(substring) == len(substring))
+
+'''
+Minimum Size Subarray Sum
+
+statement: given an array of positive integers, nums, and a positive integer, target, 
+find the minimum length of a contiguous subarray whose sum is greater than or equal to 
+the target. If no such subarray is found, return 0
+
+algorithm: traverse array using sliding window, calculate sum of elements in it, and
+compare sum with target value; if sum greater than or equal to target value, store this
+window size; repeat process to find min size subarray 
+
+time O(n), space O(1)
+'''
 def min_sub_array_len(target, nums):
-    window_size = float('inf') # store size of min subarray 
-    start = 0
-    current_sum = 0
-    for end in range(len(nums)): # slide window over input array using start and end 
-        current_sum += nums[end] # increment end and add new element of window into sum 
-        while current_sum >= target: # if sum greater than or equal to target current
-            current_subarray_size = (end + 1) - start # calculate current subarray size 
-            window_size = min(window_size, current_subarray_size) # compare current subarray size with window size and store smaller of two 
-            current_sum -= nums[start] # remove element from start of window 
-            start += 1 # increment start 
-    if window_size != float('inf'): # if window size +inf -> no subarray w sum equal/greater than target 
+    # initialize window size with max possible value 
+    window_size = float("inf")
+    
+    start = sum = 0 
+    
+    # iterate over input array
+    for end in range(len(nums)):
+        # add element of array in sum 
+        sum += nums[end]
+        
+        # if sum great than or equal to target
+        if sum >= target:
+            # find current window size 
+            curr_subarray_size = (end + 1) - start
+            # compare previous window size w current -> store smaller value in window size
+            window_size = min(window_size, curr_subarray_size)
+            # remove elements from window start 
+            sum -= nums[start]
+            start += 1 
+    
+    # if window size not equal to positive infinity, return it
+    if window_size != float('inf'):
         return window_size
     
-    return 0 # return 0 to indicate no subarray had equal or greater sum than target 
+    # otherwise, return 0
+    return 0 
+
+'''
+Maximum Average Subarray I
+
+statement: given an array of integers nums, and an integer k, return the 
+maximum average of a contiguous subarray of length k
+
+algorithm:
+1. calculate sum of first k elements and stores as current/max sum 
+2. slide window 1 element at a time over array 
+3. for each new element that enters window, subtract leaving element and add new
+   element to current sum -> meaning no complete recalculations required 
+4. update max sum w current sum if value of current greater 
+5. return max average = max sum / k
+
+time O(n) where n = number of elements of nums array, space O(1)
+
+'''
+
+def find_max_average(nums, k):
+    # initialize current and max sum with sum of first k elements 
+    current_sum = max_sum = sum(nums[:k])
     
+    # slide window by updating current sum using new element and removing old one 
+    for i in range(k, len(nums)): # start from kth element 
+        # subtract element leaving window, add new element entering 
+        current_sum += nums[i] - nums[i - k]
+    
+        # update max sum if current sum exceeds max
+        max_sum = max(max_sum, current_sum)
+    
+    # return max average by dividing max sum by k 
+    return max_sum / k 
+
+'''
+Diet Plan Performance 
+
+statement: a dieter consumes calories[i] calories on the i-th day; given an integer k, the 
+dieter reviews their calorie intake over every sequence of k consecutive days (from calories[i] 
+to calories[i + k -1] for all 0 <= i <= n-k); for each sequence, they calculate T, the total 
+calories consumed over those k days:
+
+    - if T is less than lower, the dieter performs poorly and loses 1 point
+    - if T is greater than upper, the dieter performs better and gains 1 point
+    - if T is between lower and upper (inclusive), the dieter's performance is 
+      normal, and their points remain the same
+
+the dieter starts with zero points; return the total points after the dieter follows this routine 
+for all calories.length days; the total points can be negative
+
+algorithm: sliding window allows current sum calculation w/out recalculating sum from scratch for 
+each new sequence; maintain running sum of current k days window; move 1 day forward ->
+- outgoing / + incoming
+
+time O(n) where n = length of array, space O(1)
+'''
+def diet_plan_performance(calories, k, lower, upper):
+    # start with 0 points 
+    points = 0 
+    
+    # calculate sum of calories for k days 
+    current_sum = sum(calories[:k])
+    
+    # evaluate initial window: compare sum with lower/upper thresholds to update points 
+    if current_sum < lower:
+        points -= 1
+    elif current_sum > upper:
+        points += 1 
+    
+    # slide window forward  across rest of days 1 day at a time 
+    for i in range(k, len(calories)):
+        # update window sum: subtract outgoing element / add new element 
+        current_sum += calories[i] - calories[i - k]
+    
+        # update points based on new sum for each consecutive window
+        if current_sum < lower:
+            points -= 1
+        elif current_sum > upper:
+            points += 1  
+    
+    # return total points after processing all sequences of k days 
+    return points
+
 def max_profit(prices):
     if not prices:
         return 0
@@ -626,6 +821,8 @@ def diet_plan_performance(calories, k, lower, upper):
     return points 
 
 '''
+Fruit Into Baskets
+
 statement: while visiting a farm of fruits, you have been given a row of fruits 
 represented by an integer array, fruits, where fruits[i] is the type of fruit the ith
 tree produces - you have to collect fruits, but there are some rules that you must 
@@ -638,23 +835,21 @@ follow while collecting fruits:
     - you must stop while encountering a tree with a fruit type that cannot fit into 
       any of your baskets
 
-return the maximum iber of fruits you can collect following the above rules 
-for the given array of
- fruits
+return the maximum number of fruits you can collect following the above rules 
+for the given array of fruits
 
 algorithm: use sliding window to manage range of trees being considered, starts from 
 small window and expands window as more trees added to allow max fruit collection, if 
 fruit types grows to over 2 -> reduce window size from left until valid     
 
-time O(n) where n = total iber of fruit trees, space O(1)
+time O(n) where n = total number of fruit trees, space O(1)
 '''
 
 def total_fruit(fruits):
     # create dictionary to track count/frequency of each fruit type in current window
     baskets = {}
-    # max iber of fruits collected so far 
-    collected = 0 
-    # 
+    # max number of fruits collected so far 
+    collected = 0  
     # left variable for window start / left boundary for sliding window  
     left = 0
     
@@ -675,39 +870,44 @@ def total_fruit(fruits):
             # move left boundary to the right 
             left += 1
         
-        # track current window size and update max iber of fruits collected if current is greater 
+        # track current window size and update max number of fruits collected if current is greater 
         collected = max(collected, right - left + 1)
     
     # return max count after processing all trees 
     return collected          
 
 '''
-statement: you are given an integer array, is, and an integer k - determine whether 
+Contains Duplicate II
 
+statement: you are given an integer array, is, and an integer k - determine whether 
 two distinct indices, i and j, are in the array, such that is[i] == is[j] and the 
 absolute difference between i and j is at most k - return TRUE if such indices exist; 
 otherwise, return FALSE
 
+algorithm: maintain sliding window of size k to track elements within limited range using set; 
+iterate -> check if current element in set -> duplicate in range -> return True; otherwise add
+to set; remove oldest element if length of set exceeds k -> ensures set contains elements within 
+valid range
+
 time O(n) where n = length of array, space O(min(n, k)) space occupied by set = size of current sliding window
 '''
 def contains_nearby_duplicate(nums, k):
-    # create set to tra
-    # ck elements within range k 
+    # create set to track elements within range k 
     seen = set()
     
-    # iterate through the is array
+    # iterate through array
     for i in range(len(nums)):
 
         # check if current element already exists in set, return True if so  
         if nums[i] in seen:  
             return True # indicates duplicate found within range k 
        
-        # if current  ient range(len(does))n't exist, add to set 
+        # add to set if not already there 
         seen.add(nums[i])
         
         # if set size exceeds k, remove oldest element to keep k latest elements 
         if len(seen) > k: 
             seen.remove(nums[i - k])
     
-    # if no duplic ifounrange(len(d, r))eturn False     
+    # if no duplicate iounrange(len(d, r))eturn False     
     return False
