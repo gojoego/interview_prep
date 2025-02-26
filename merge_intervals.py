@@ -23,6 +23,19 @@ real-world problems
 - task scheduling in operating systems 
 '''
 
+class Interval:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end 
+        self.closed = True # closed by default 
+        
+    def set_closed(self, closed):
+        self.closed = closed
+        
+    def __str__(self):
+        return "[" + str(self.start) + ", " + str(self.end) + "]" \
+            if self.closed else \
+                "(" + str(self.start) + ", " + str(self.end) + ")"
   
 '''
 Merge Intervals
@@ -241,3 +254,160 @@ def naive_intervals_intersection(interval_list_a, interval_list_b):
             if start <= end:
                 intersections.append([start, end])
     return intersections
+
+'''
+Employee Free Time
+
+statement: you're given a list containing the schedules of multiple employees; each person's 
+schedule is a list of non-overlapping intervals in sorted order; an interval is specified with 
+the start and end time, both being positive integers; your task is to find the list of finite 
+intervals representing the free time for all the employees
+
+note: the common free intervals are calculated between the earliest start time and the latest 
+end time of all meetings across all employees
+
+algorithm: merging overlapping intervals of employees and identifying free time gaps between merged
+intervals; use min heap to array intervals based on start and sort accordingly; min heap pops will
+be earliest available interval; merge intervals as popped; if current start time more than merged
+interval end -> gap / free period; after each gap, restart process 
+
+time O(mlog(n)), space O(n) where m = total intervals and n = number of employees and m = number of
+intervals 
+
+'''
+import heapq
+
+def employee_free_time(schedule):  
+    # initialize heap 
+    min_heap = []
+    # push first interval of each employ onto heap: start, index value and 0 
+    for i in range(len(schedule)):
+        min_heap.append((schedule[i][0].start, i, 0))
+    
+    # create heap from array elements 
+    heapq.heapify(min_heap)
+    
+    result = []
+    
+    # set previous interval as start time of first interval 
+    previous = schedule[min_heap[0][1]][min_heap[0][2]].start 
+    
+    # repeatedly pop smallest interval from heap and compare w previous interval 
+    while min_heap:
+        _, i, j = heapq.heappop(min_heap)
+        
+        # select interval 
+        interval = schedule[i][j]
+        
+        # if selected start time greater than previous -> free interval, add to result 
+        if interval.start > previous:
+            result.append(Interval(previous, interval.start))
+        
+        # update previous as max of previous and current end times 
+        previous = max(previous, interval.end)
+        
+        # push additional intervals of current employee onto heap if it exists 
+        if j + 1 < len(schedule[i]):
+            heapq.heappush(min_heap, (schedule[i][j + 1].start, i , j + 1))
+        
+    return result
+
+'''
+Task Scheduler
+
+statement: given a character array tasks, where each character represents a unique task and a 
+positive integer n that represents the cooling period between any two identical tasks, find the 
+minimum number of time units the CPU will need to complete all the given tasks; each task requires 
+one unit to perform, and the CPU must wait for at least n units of time before it can repeat the 
+same task; during the cooling period, the CPU can perform other tasks or remain idle
+
+algorithm: minimize idle time by strategically scheduling tasks based on frequency; 
+start with most frequent tasks -> create structure that maximizes idle time; reduce 
+idle time by incorporating less frequent tasks within cooling periods 
+
+max possible idle time = (max freq - 1) * cooling period 
+max freq = highest freq of task in sequence
+cooling time = specified interval between identical tasks 
+
+idle time -= min(max freq - 1, current task frequency)
+current task frequency = frequency of task currently being processed
+
+total time required = length of tasks + idle time 
+
+time O(n) where n = total number of tasks, space O(1)
+'''
+
+def least_time(tasks, n):
+    # initialize dictionary to store frequency of tasks 
+    frequencies = {}
+    
+    # count and store frequencies of all tasks 
+    for task in tasks:
+        frequencies[task] = frequencies.get(task, 0) + 1
+    
+    # sort tasks based on frequencies
+    frequencies = dict(sorted(frequencies.items(), key = lambda x:x[1]))
+    
+    # store max frequency
+    max_frequency = frequencies.popitem()[1]
+    
+    # compute max possible idle time 
+    idle_time = (max_frequency - 1) * n 
+    
+    # start scheduling tasks in desc order of their freqs / iterate over frequencies 
+    while frequencies and idle_time > 0:
+        # compute idle time 
+        idle_time -= min(max_frequency - 1, frequencies.popitem()[1])
+    
+    idle_time = max(0, idle_time)
+        
+    # calculate total time by adding number of tasks and idle time 
+    return len(tasks) + idle_time
+
+'''
+Meeting Rooms II
+
+statement: we are given an input array of meeting time intervals, intervals, 
+where each interval has a start time and an end time; your task is to find the 
+minimum number of meeting rooms required to hold these meetings
+
+an important thing to note here is that the specified end time for 
+each meeting is exclusive
+
+algorithm: first sort the meeting intervals by start time; use a min-heap to track 
+meeting end times; iterate through the intervals, checking if the earliest ending 
+meeting (top of the heap) has finished before the current meeting starts —> if so, 
+remove that meeting from the heap; current meeting's end time is then added to the 
+heap, and the heap's size at the end represents the minimum number of meeting rooms
+required
+
+time O(n*log(n)), space O(n)
+'''
+import heapq
+
+def find_sets(intervals):
+    if not intervals:
+        return 0
+    
+    # sort given input intervals with respect to their start times 
+    intervals.sort(key = lambda x : x[0])
+    
+    # initialize min heap and push end time of first interval onto it 
+    min_heap = []
+    heapq.heappush(min_heap, intervals[0][1])
+    
+    # loop over remaining intervals 
+    for i in range(1, len(intervals)):
+        # compare start time of current interval w all heap end times 
+        start, end = intervals[i]
+        
+        # if earliest end time so far (root of heap) occurs before start time of current interval
+        if min_heap[0] <= start:
+            # remove earliest interval from heap 
+            heapq.heappop(min_heap)
+        
+        # push current interval onto heap 
+        heapq.heappush(min_heap, end)
+    
+    # after processing all intervals, heap size = count meeting rooms needed 
+    return len(min_heap)
