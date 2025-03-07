@@ -155,10 +155,96 @@ def binary_search(prefix_sum, target):
 '''
 Find Target Indices After Sorting Array
 
-statement: you are given a 0-indexed array of positive integers, nums, and a value, target; the target represents an index 
-i
-i
- in the array such that nums[i] == target.
+statement: you are given a 0-indexed array of positive integers, nums, and a value, target; 
+the target represents an index i in the array such that nums[i] == target
 
-Your task is to return a list of indexes of nums where the value equals target after sorting the array in nondecreasing order. If no such indexes exist, return an empty list. Ensure the returned list is sorted in increasing order.
+your task is to return a list of indexes of nums where the value equals target after sorting 
+the array in nondecreasing order; if no such indexes exist, return an empty list; ensure the 
+returned list is sorted in increasing order
+
+algorithm: sort array from lowest to highest, search through sorted array and collect indices 
+where values matches target 
+
+time O(nlogn) where n = number of elements in array, space O(1)
 '''
+def target_indices(nums, target):
+    output = []
+    
+    # sort nums in ascending order so target value's positions easier to find 
+    nums.sort()
+    
+    # iterate through all elements of sorted array and for each element, check if it matches target value 
+    for i in range(len(nums)):
+        if nums[i] == target:
+            # store index in new array when element matches target value 
+            output.append(i)
+
+    # after iterating through all elements, return array of stored indexes 
+    return output
+
+'''
+Count Pairs in Two Arrays
+
+statement: you are given two positive integer arrays, nums1 and nums2, both of length n;
+your task is to count and return the number of pairs of indexes (i,j) where:
+    
+    i < j, and
+    nums1[i] + nums1[j] > nums2[i] + nums2[j]
+
+in simpler terms, the sum of two elements from nums1 must be greater than that of the 
+corresponding elements from nums2
+
+algorithm: 
+    simplify condition to (nums1[i] - nums2[i]) + (nums1[j] - nums2[j]) > 0
+    reduce condition to difference[i] + difference[j] > 0
+    
+time O(nlogn) and space(n) where n = number of elements in the array 
+'''
+
+def count_pairs(nums1, nums2):
+    n = len(nums1)
+    
+    # create an array to store difference between corrsponding elements of arrays 
+    diffs = [nums1[i] - nums2[i] for i in range(n)]
+
+    # initialize counter to store number of valid pairs 
+    valid_count = 0 
+    
+    # sort difference array to efficiently ID valid pairs 
+    diffs.sort()
+    
+    # iterate over differences 
+    for i in range(n):
+        # if difference at index > 0 
+        if diffs[i] > 0: # add count of indices after current index to counter
+            valid_count += n - i - 1  # all subsequent elements will form valid pairs 
+            
+        # otherwise, binary search to find 1st position after current index where sum of 
+        # differences satisfies condition of being greater than zero 
+        else: 
+            left = i + 1 
+            right = n - 1 
+            while left <= right: 
+                mid = (left + right) // 2 
+                # if difference at mid valid pair, search in left half 
+                if diffs[i] + diffs[mid] > 0:
+                    right = mid - 1 
+                # if difference at mid not valid, search in right 
+                else:
+                    left = mid + 1 
+        
+            # add count of indices from this position onward to the counter
+            valid_count += n - left 
+
+    # after processing all indices, return total count of valid pairs stored in counter     
+    return valid_count
+
+def brute_force_count_pairs(nums1, nums2):
+    n = len(nums1)
+    count = 0 
+    
+    for i in range(n):
+        for j in range(i + 1, n):
+            if nums1[i] + nums1[j] > nums2[i] + nums2[j]:
+                count += 1
+    return count
