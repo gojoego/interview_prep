@@ -95,3 +95,70 @@ def find_the_distance_value(arr1, arr2, d):
     
     return distance
 
+
+'''
+Longest Subsequence With Limited Sum
+
+statement: you are given an integer array, nums, of length n, and an integer array, queries, 
+of length m
+
+for each element in queries, determine the maximum number of elements that can be selected from 
+nums to form a subsequence such that the sum of the selected elements is less than or equal to 
+the query value
+
+return an array answer of length m, where answer[i] represents the size of the largest subsequence 
+of nums whose sum is less than or equal to queries[i]
+
+algorithm: 
+- sort array in ascending order to facilitate binary search operations 
+- prefix sum array where each element represents cumulative sum of elements in nums to that index 
+- allows quick calculation of sum of any contiguous subsequence 
+- use binary search on prefix sum array to determine max length of subsequence sum <= query value
+- binary search finds largest index where cumulative sum does not exceed query 
+- all elements from start of array to index form valid subseq and index corresponds to length 
+
+time O((n + m)logn), space 0(n) where m = queries and n = number of elements in nums
+'''
+def answer_queries(nums, queries):
+    # sort input array nums in ascending order 
+    nums.sort()
+    
+    # calculate prefix sums for sorted array, prefix_sum[i] = cumulative elements sum from start to i 
+    prefix_sum = [0] * len(nums)
+    prefix_sum[0] = nums[0]
+    for i in range(1, len(nums)):
+        prefix_sum[i] = prefix_sum[i - 1] + nums[i] 
+    
+    # for each query, binary search on prefix sum to find largest k where sum of k + 1 elements <= query value 
+    output = []
+
+    for query in queries:
+        index = binary_search(prefix_sum, query)
+        # store subsequence length (determined from binary search) for all queries in list
+        output.append(index)      
+        
+    # return final output 
+    return output
+
+def binary_search(prefix_sum, target):
+    low = 0 
+    high = len(prefix_sum) - 1
+    
+    while low <= high: 
+        mid = (low + high) // 2 
+        if prefix_sum[mid] <= target:
+            low = mid + 1 
+        else:
+            high = mid - 1
+    return high + 1
+
+'''
+Find Target Indices After Sorting Array
+
+statement: you are given a 0-indexed array of positive integers, nums, and a value, target; the target represents an index 
+i
+i
+ in the array such that nums[i] == target.
+
+Your task is to return a list of indexes of nums where the value equals target after sorting the array in nondecreasing order. If no such indexes exist, return an empty list. Ensure the returned list is sorted in increasing order.
+'''
