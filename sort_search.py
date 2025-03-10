@@ -248,3 +248,120 @@ def brute_force_count_pairs(nums1, nums2):
             if nums1[i] + nums1[j] > nums2[i] + nums2[j]:
                 count += 1
     return count
+
+'''
+Valid Triangle Number
+
+statement: given an array of integers, nums, determine the number of unique triplets that can 
+be selected from the array such that the selected values can form the sides of a valid triangle;
+return this count as the result
+
+valid triangle: a triangle is valid if the sum of the lengths of any two smaller sides is strictly 
+greater than the length of the third largest side; for three sides a, b, c (such that a ≤ b ≤ c), 
+the condition to form a valid triangle is a + b > c
+
+algorithm: 
+- triangle inequality rule: sum of 2 smaller sides > largest 
+- sort array in ascending order -> largest side always at end 
+- iterate backward from end to search for valid combos 
+- ID valid combos while iterating -> fix current element as largest and explore potential pairs 
+  for small sides 
+
+time O(nlogn + n ^ 2) where n = size of array, space O(1)
+'''
+def triangle_number(nums): 
+    # sort the values of nums in ascending order to simplify checking the triangle inequality
+    nums.sort()
+
+    count = 0 
+    
+    # begin evaluating potential combinations by treating the largest value as the third side of the 
+    # triangle aka iterate backward through array treating nums at i as largest side    
+    for i in range(len(nums) - 1, 1, -1):
+        # select two other values(sides) from the remaining array, one from the start and the other 
+        # from one position, before selecting the largest value (third side) -> these two values act 
+        # as the first two sides of the triangle
+        left = 0
+        right = i - 1 
+        
+        # search to find all valid pairs (nums[left], nums[right]) for nums[i]
+        while left < right:
+            # check if the sum of the first two sides exceeds the third; all combinations between 
+            # these first two sides are valid if this condition is met; count these combinations and 
+            # move to smaller potential sides
+            if nums[left] + nums[right] > nums[i]:
+                count += (right - left)
+                right -= 1 
+            #  if the condition is not met, adjust the choice by exploring larger values from the start
+            else:
+                left += 1 
+                
+    # continue this process for all possible groupings and return the total number of combinations 
+    # that satisfy the triangle condition
+    return count
+
+'''
+Minimum Operations to Make All Array Elements Equal
+
+statement: you are given an array, nums, consisting of positive integers of size n and another array 
+queries of size m; for each query i in queries, the goal is to make all elements of nums equal to 
+queries[i]; to achieve this, you can perform the following operation any number of times:
+
+    increase or decrease an element of nums by 1
+
+return an array answer of size m, where answer[i] is the minimum number of operations needed to make 
+all elements of nums equal to queries[i]; after processing each query, the nums array is reset to its 
+original state
+
+algorithm: 
+- sort array and use prefix sum array for range sum calculations 
+- prefix sum stores cumulative sums of sorted array -> iterate through and maintain running total
+- for each query, split array into elements smaller than / greater than or equal to using binary search 
+- find smallest index where element greater than or equal to query value 
+- range adjust during search: if middle element smaller move right, if greater/equal to left 
+- left cost = (query * count of smaller elements) - sum of smaller elements
+- right cost = (sum of larger elements ) - (query * count of larger elements)
+- total cost = left + right
+
+time O((n + m)logn), space O(n) where n = number of elements in nums and m = number of queries 
+'''
+def min_operations(nums, queries):
+    n = len(nums)
+    
+    # sort nums array 
+    nums.sort()
+    
+    # compute prefix sum array for cumulative sums
+    prefix_sums = [0] * (n + 1)
+    for i in range(n):
+        prefix_sums[i + 1] = prefix_sums[i] + nums[i]
+    
+    output = []
+    for query in queries:
+        index = binary_search_minops(nums, query)
+        
+        # calculcate cost to adjust all elements smaller than query
+        # (query×count of smaller elements) − sum of smaller elements
+        left_operations = query * index - prefix_sums[index]
+        
+        # compute cost to adjust all elements larger than or equal to query using 
+        # (sum of larger elements) − (query×count of larger elements)
+        right_operations = (prefix_sums[n] - prefix_sums[index]) - query * (n - index)
+        
+        # append sum of left and right costs for each query to result array 
+        output.append(left_operations + right_operations)
+        
+    return output
+
+def binary_search_minops(array, target):
+    low = 0 
+    high = len(array) - 1
+    
+    while low <= high:
+        mid = (low + high) // 2 
+        if array[mid] < target:
+            low = mid + 1 
+        else:
+            high = mid - 1 
+            
+    return low 
