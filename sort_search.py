@@ -365,3 +365,156 @@ def binary_search_minops(array, target):
             high = mid - 1 
             
     return low 
+
+'''
+Sum of Mutated Array Closest to Target
+
+statement: given an integer array arr and a target value target, find an integer value such that 
+if all the numbers in arr greater than value are replaced with a value, the sum of the array gets 
+as close as possible to the target
+
+choose the smaller value if there's a tie (two value options are equally close to the target)
+
+note: the answer doesn't have to be a number from the array
+
+algorithm:
+- sort array in ascending order -> smaller numbers evaluated first 
+- evaluate whether replacing all subsequent numbers with current number would minimize gap between 
+  modified array sum and target for each number in array 
+- maintain remaining target to determine if replacing all subsequent numbers with current would 
+  minimize gap 
+- initially, remaining target equal to original target value 
+- during traversal, subtract each processed number from target to update remaining target 
+- running total helps evaluate how much more is needed to match target 
+- at each step, check if remaining target small enough to be achieved by replacing all remaining 
+  numbers in array with current number: 
+  
+  remaining target ≤ current value * number remaining of elements
+  
+- recalculate replacement value if condition true 
+- replacement value determined by dividing remaining target by number of remaining elements in array: 
+
+  replacement value = remaining target / count of remaining elements 
+  
+- calculate replacement value instead of simply using current number because remaining target may not 
+  be exact multiple of current number, especially remaining target smaller than 
+  
+  current_value * number_of_remaining_elements
+
+- can adjust replacement value more precisely to minimize gap between target and modified array sum 
+
+time O(nlogn) where n = number of elements in array, space O(1)
+
+'''
+
+def find_best_value(arr, target):
+    # 1: sort array in ascending order to make it easier to process elements from smallest to largest 
+    arr.sort()
+    
+    # array length variable to calculate how many elements left to process at each step
+    n = len(arr)
+    
+    remaining_target = target
+    
+    # 2: iterate through sorted array 
+    for i, num in enumerate(arr):
+        # check if remaining target can be distributed evenly among remaining numbers 
+        if remaining_target <= num * (n - i):
+            # calculate replacement value by dividing remaining target by remaining count
+            replacement_value = remaining_target / (n - i)
+            
+            # handle tie cases: if fractional part exactly 0.5 -> choose smaller integer
+            if replacement_value - int(replacement_value) == 0.5:
+                return int(replacement_value)
+
+            # otherwise, round to nearest integer
+            return round(replacement_value)
+
+        # subtract current number from remaining target since it is fully used 
+        remaining_target -= num
+    
+    # 3: if target exceeds sum of array, return largest element in array 
+    return arr[-1]
+
+'''
+Range Sum of Sorted Subarray Sums
+
+statement: you are given an integer array nums containing n positive integers along with left and 
+right; calculate the sum of its elements for every non-empty continuous subarray of nums; collect 
+these sums into a new array and sort it in nondecreasing order; this will result in a new array of 
+size n * (n + 1) / 2
+
+your task is to return the sum of the elements in this sorted array from the index left to right 
+(inclusive with 1-based indexing)
+
+note: as the result can be large, return the sum modulo 10 ^ 9 + 7
+
+algorithm: 
+- use binary search to directly find range sum without calculating or sorting all subarray sums 
+- ID feasible range for possible subarray sums -> between smallest array element and total sum 
+- range ensure no valid sums overlooked / serves as foundation for binary search 
+- for each threshold, calculate count of subarrays with sums below and their cumulative sum using 
+  sliding window technique 
+- goal is to find threshold value T such that there are exactly k subarrays with sums less than 
+  or equal to T 
+- binary search narrows threshold by checking for each mid value (potential sum threshold) if it 
+  satisfies condition of having at least k subarrays below it 
+- by adjusting search range based on count, we pinpoint boundaries of desired range of subarray sums
+- once total sum of subarrays calculated up to index right and total sum of subarrays up to index left 
+  subtract these 2 sums to get sum of subarrays in range [left, right]
+  
+time O(nlog(sum)) where n = length of nums and sum = total sum of nums array, space O(1)
+'''
+def range_sum(nums, n, left, right):
+    mod = 10 ** 9 + 7
+
+    # calculate sum of first right subarray sums minus first 'left - 1' subarray sums 
+    result = (sum_firstk(nums, n, right) - sum_firstk(nums, n, left - 1)) % mod   
+
+    # ensure non-negative result by applying modulo again 
+    return (result + mod) % mod
+
+def sum_firstk(nums, n, k):
+    min_sum = min(nums) # smallest sum in array 
+    max_sum = sum(nums) # largest sum in array 
+    T_left = min_sum
+    T_right = max_sum
+    
+    # perform binary search to find smallest subarray sum threshold that contains at least k subarrays
+    while T_left <= T_right:
+        mid = T_left + (T_right - T_left) // 2
+        # if there are at least k subarrays with sum <= mid  
+        if count_sum(nums, n, mid)[0] >= k: 
+            T_right = mid - 1 # narrow down search to left half 
+        else: 
+            T_left = mid + 1 # narrow down search to right half 
+    
+    # calculate total sum of first k subarray sums 
+    count, total_sum = count_sum(nums, n, T_left)
+    
+    # subtract excess sum of subarrays beyond kth subarray 
+    return total_sum - T_left * (count - k)
+
+def count_sum(nums, n, target):
+    count = 0 
+    current_sum = 0 
+    total_sum = 0 
+    window_sum = 0 
+    i = 0 
+    
+    for j in range(n):
+        current_sum += nums[j] # add current element to running sum 
+        window_sum += nums[j] * (j - i + 1) # add contribution of current element to window sum 
+        
+        # while current sum exceeds target, adjust window size by moving i 
+        while current_sum > target:
+            window_sum -= current_sum # remove current window sum 
+            current_sum -= nums[i] # remove element at left pointer 
+            i += 1 
+        
+        # count number of valid subarrays in current window 
+        count += j - i + 1 
+        total_sum += window_sum # add current window sum to total sum 
+    
+    return count, total_sum
+
