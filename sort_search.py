@@ -518,3 +518,326 @@ def count_sum(nums, n, target):
     
     return count, total_sum
 
+'''
+Magnetic Force Between Two Balls
+
+statement: in the universe Earth C-137, Rick has discovered a unique type of magnetic force between 
+two balls when placed in his newly invented baskets; he has n baskets, each located at specific 
+positions given by the array position[i]; Morty has m balls and needs to distribute these balls 
+across the baskets in such a way that the minimum magnetic force between any two balls is as large 
+as possible
+
+the magnetic force between two balls placed at positions x and y is calculated as the absolute 
+difference |x - y|
+
+given an integer array position and the number of balls m, return the maximum possible value of the 
+minimum magnetic force between any two balls after they have been placed in the baskets
+'''
+# helper function to see if possible to place m balls such that min force between 2 balls at least x 
+def can_place_balls(x, position, m):
+    # place first ball at first position 
+    previous = position[0]
+    
+    # initialize counter for balls placed
+    balls = 1 
+    
+    # iterate through array 
+    for i in range(1, len(position)):
+        current = position[i]
+        
+        # check if we can place ball at current position 
+        if current - previous >= x:
+            balls += 1 
+            
+            # update last placed ball's position 
+            previous = current
+            
+            # if all m balls placed 
+            if balls == m:
+                return True
+    
+    return False
+
+def max_distance(position, m):
+    # sort array 
+    position.sort()
+    
+    # variable to store max possible min distance between balls 
+    force = 0 
+    
+    # define binary search range 
+    low = 1 
+    high = (position[-1] - position[0]) // (m - 1)
+    
+    # perform binary search 
+    while low <= high:
+        # calculate midpoint 
+        mid = (low + high) // 2 
+        
+        # check if we can place all balls having gap of at least mid 
+        if can_place_balls(mid, position, m):
+            force = mid
+            low = mid + 1 
+        else:
+            high = mid - 1 
+    
+    return force
+
+'''
+Find K-th Smallest Pair Distance
+
+statement: given an array of integers nums and an integer k, return the kth smallest distance 
+between any pair of integers (nums[i], nums[j]), where 0 ≤ i < j < num.length
+
+the distance between a pair of integers, a and b, is defined as the absolute difference between them
+
+'''
+
+# help function to count number of pairs that have distance less than / equal to given distance d
+def count_pairs_with_distance(nums, d):
+    # initialize count with 0 to count number of pairs
+    count = 0 
+    
+    # initialize 2 pointers to use sliding window technique to count # pairs 
+    left = 0 
+    for right in range(len(nums)): # iterate through array using right pointer
+        # keep incrementing left until distance between elements at left / right <= d 
+        while nums[right] - nums[left] > d:
+            left += 1 
+            
+        # add number of pairs to count 
+        count += right - left 
+
+    return count 
+
+def smallest_distance_pair(nums, k):
+    # sort array 
+    nums.sort()
+    
+    # define binary search range using variables low and high 
+    low = 0 
+    high = nums[-1] - nums[0]
+    
+    # binary search 
+    while low < high:
+        # calculate midpoint - reps potential candidate for kth smallest distance 
+        mid = (low + high) // 2 
+        
+        # for each midpoint, count how many pairs have distance <= to mid w/ helper function
+        count = count_pairs_with_distance(nums, mid )
+        
+        # adjust binary search range 
+        if count < k:
+            low = mid + 1 
+        else: 
+            high = mid 
+            
+    # return low as kth smallest distance 
+    return low 
+
+'''
+Minimum Space Wasted from Packaging
+
+statement: you have n packages that need to be placed into boxes, with one package per box; there 
+are m suppliers, and each supplier offers boxes of different sizes (with an infinite supply of each 
+size); a package can only fit into a box if the size of the box is greater than or equal to the size 
+of the package
+
+the sizes of the packages and boxes are provided as follows:
+- sizes of the packages are given as an integer array, packages, where packages[i] represents the 
+  size of the i-th package
+- sizes of the boxes offered by the j-th supplier are given in a 2D array, boxes, where boxes[j] 
+  is an array of distinct box sizes provided by that supplier
+
+you want to choose a single supplier and use boxes from them to minimize wasted space; the wasted 
+space for a package is calculated as the difference between the box and package sizes; the total 
+wasted space is the sum of the wasted space for all the packages
+
+return the minimum wasted space by selecting the supplier whose boxes result in the least waste, or 
+return -1 if it is impossible to fit all the packages using any supplier's boxes; as the result can 
+be large, return it modulo 10 ^ 9 + 7
+
+'''
+
+# custom binary search to find upper bound index 
+def binary_search(array, target, start):
+    low = start
+    high = len(array) - 1 
+    while low <= high:
+        mid = (low + high) // 2 
+        if array[mid] <= target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return low 
+
+def min_wasted_space(packages, boxes):
+    MOD = 10 ** 9 + 7 
+    
+    # sort packages sizes for efficient processing
+    packages.sort()
+    total_package_size = sum(packages)
+    min_waste = float('inf')
+    
+    for box_sizes in boxes:
+        # sort box sizes for supplier 
+        box_sizes.sort()
+        
+        # skip if largest box cannot fit largest package 
+        if box_sizes[-1] < packages[-1]:
+            continue
+        
+        total_space_used = 0 
+        start_index = 0 
+        
+        for box_size in box_sizes:
+            # find index of first package that does not fit into current box 
+            end_index = binary_search(packages, box_size, start_index)
+            
+            # calculate number of packages that fit into current box 
+            num_packages = end_index - start_index
+            total_space_used += box_size * num_packages
+            
+            # move start index forward 
+            start_index = end_index
+            
+        # calculate actual waste by subtracting total package size 
+        min_waste = min(min_waste, total_space_used - total_package_size)
+    
+    # return result or -1 if not valid supplier exists 
+    return (min_waste) % MOD if min_waste != float('inf') else - 1
+
+'''
+Russian Doll Envelopes
+
+statement: you are given a 2D array of integers, envelopes, where each element 
+envelopes[i] = [wi, hi] represents the width and height of an envelope; an envelope 
+can fit inside another if and only if its width and height are strictly smaller than 
+the width and height of the other envelope; the task is to determine the maximum number 
+of envelopes that can be nested inside each other, similar to Russian dolls
+
+algorithm: 
+- use combo of sorting / searching techniques to determine max number of envelopes that 
+  can be nested within each other while considering width / height must be smaller than 
+  other envelope 
+- sort envelopes by width in ascending order, height descending for ties 
+- descending height prevents misunderstanding of envelopes with same width -> 
+  smaller envelopes could incorrectly nest within larger ones with ascending heights 
+- after sorting envelopes, find longest increasing subsequence (LIS) based on the 
+  height of the envelopes, treating the heights of sorted envelopes as one-dimensional 
+  sequence
+- use binary search to manage LIS -> track smallest possible ending heights of 
+  increasing subsequences of various lengths 
+- for each height:
+    - binary search determines position in LIS where current height can fit -> finding
+      first height in LIS greater than or equal to current height (ensures sequence 
+      remains sorted and allows replacement of larger values, maintaining smallest 
+      possible subsequences for future comparisons)
+    - if no such position exists (i.e., height greater than all values in LIS), height 
+      appended to LIS, meaning an extension of LIS
+    - if valid position exists, height replaces value at that position in LIS, ensuring 
+      that subsequences of that length have smallest possible ending height
+
+LIS: longest increasing subsequence 
+- longest subsequence of a given sequence in which the elements are strictly increasing
+
+time O(nlogn), space O(n) where n = number of envelopes 
+'''
+# helper function to find position to insert height in envelope heights array using binary search 
+def find_position(lis, height):
+    # initialize search boundaries 
+    left = 0 
+    right = len(lis) - 1
+    
+    # perform binary search 
+    while left <= right:
+        mid = (left + right) // 2
+        if lis[mid] < height:
+            left = mid + 1 
+        else: 
+            right = mid - 1 
+    
+    # return position where height fits 
+    return left 
+
+def max_envelopes(envelopes):
+    # sort envelopes by width in ascending order, conflicts -> sort by height descending 
+    envelopes.sort(key = lambda x: (x[0], -x[1]))
+    
+    # initialize empty list to track increasing heights 
+    lis = []
+    
+    # iterate through sorted envelopes 
+    for width, height in envelopes:
+        # use binary search to find position where this height fits in LIS array 
+        position = find_position(lis, height)
+        
+        # if position equals current length of LIS array, extend array 
+        if position == len(lis):
+            lis.append(height)
+        # otherwise, replace height at found position to maintain sequence
+        else:
+            lis[position] = height
+    
+    # length of LIS array reps max number of Russian-dollable envelopes 
+    return len(lis)
+
+'''
+Two Sum Less Than K
+
+statement: given an array of integers, nums, and an integer k, find maximum sum of 
+two elements in nums less than k; otherwise, return -1 if no such pair exists
+
+'''
+def two_sum_less_than_k(nums, k):
+    # sort array to make it easier to find pairs quickly 
+    nums.sort()
+    
+    largest_sum = -1 # default to -1 if no valid pairs found 
+    left = 0 
+    right = len(nums) - 1 
+            
+    # 2 pointer - adjust pointers to find pairs whose sum close to but less than k 
+    while left < right: 
+        current_sum = nums[left] + nums[right]
+        
+        if current_sum < k: 
+            # update largest sum if valid pair found during process
+            largest_sum = max(largest_sum, current_sum)
+            left += 1 
+        else:
+            right -= 1 
+            
+    # return largest sum if valid pair exists, -1 otherwise 
+    return largest_sum
+
+'''
+Maximum Number of Integers to Choose from a Range I
+
+statement: given an integer array banned and two integers n and max_sum, determine 
+maximum number of integers you can choose while adhering to the following rules:
+
+- selected integers must fall within the range [1,n]
+- each integer can be chosen at most once
+- no selected integer can be present in the banned array
+- sum of the selected integers must not exceed max_sum
+
+your goal is to return the maximum count of integers that can be chosen while 
+satisfying all the above constraints
+
+'''
+def max_count(banned, n, max_sum):
+    # convert banned list to set for quick lookup 
+    banned_set = set(banned)
+    
+    total_sum = count = 0 
+    
+    for num in range(1, n + 1):
+        if num in banned_set:
+            continue
+        if total_sum + num > max_sum:
+            break 
+        total_sum += num 
+        count += 1 
+    
+    return count 
